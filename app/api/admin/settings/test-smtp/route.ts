@@ -41,9 +41,14 @@ export async function POST(req: Request) {
       secure:     tls,
       requireTLS: !tls && portNum === 587,
       auth:       { user, pass: password },
+      logger:     false,
+      debug:      false,
     });
 
-    await transporter.sendMail({
+    // Verify connection first before trying to send
+    await transporter.verify();
+
+    const info = await transporter.sendMail({
       from:    `EmergePet <${fromEmail}>`,
       to:      toEmail,
       subject: "EmergePet SMTP Test",
@@ -60,10 +65,26 @@ export async function POST(req: Request) {
       `,
     });
 
-    return NextResponse.json({ success: true, message: `Test email sent to ${toEmail}` });
+    return NextResponse.json({
+      success: true,
+      message: `Test email sent to ${toEmail}`,
+      details: {
+        host,
+        port:      portNum,
+        tls,
+        from:      fromEmail,
+        to:        toEmail,
+        messageId: info.messageId,
+        response:  info.response,
+      },
+    });
   } catch (err) {
+    const message = err instanceof Error ? err.message : "SMTP test failed.";
+    const code    = (err as Record<string, unknown>).code ?? null;
+    const command = (err as Record<string, unknown>).command ?? null;
+    const response= (err as Record<string, unknown>).response ?? null;
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "SMTP test failed." },
+      { error: message, code, command, response },
       { status: 500 }
     );
   }
