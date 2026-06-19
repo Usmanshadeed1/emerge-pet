@@ -30,6 +30,12 @@ export default function SettingsPage() {
 
   const [inviteCopied, setInviteCopied] = useState(false);
 
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword,     setNewPassword]     = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwState, setPwState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [pwError, setPwError] = useState("");
+
   useEffect(() => {
     fetch("/api/user/profile")
       .then((r) => r.json())
@@ -50,6 +56,32 @@ export default function SettingsPage() {
     });
     setSaveState(res.ok ? "saved" : "error");
     if (res.ok) setTimeout(() => setSaveState("idle"), 2500);
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError("");
+    if (newPassword !== confirmPassword) {
+      setPwError("New passwords do not match.");
+      return;
+    }
+    setPwState("saving");
+    const res  = await fetch("/api/user/password", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setPwError(data.error ?? "Failed to update password.");
+      setPwState("error");
+      return;
+    }
+    setPwState("saved");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setTimeout(() => setPwState("idle"), 2500);
   }
 
   async function handleCopyInvite() {
@@ -135,6 +167,40 @@ export default function SettingsPage() {
             {saveState === "saved" ? "✓ Saved!" : saveState === "saving" ? "Saving…" : "Save changes"}
           </button>
           {saveState === "error" && <p className="text-sm text-red-600">Failed to save. Try again.</p>}
+        </div>
+      </form>
+
+      {/* ── Change Password ───────────────────────────── */}
+      <form onSubmit={handlePasswordChange} className="rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 space-y-5">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Change password</h2>
+
+        <div>
+          <label htmlFor="currentPassword" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Current password</label>
+          <input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required autoComplete="current-password"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all" />
+        </div>
+
+        <div>
+          <label htmlFor="newPassword" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">New password</label>
+          <input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoComplete="new-password" minLength={8}
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all" />
+          <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">Minimum 8 characters</p>
+        </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm new password</label>
+          <input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password"
+            className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all" />
+        </div>
+
+        {pwError && <p className="text-sm text-red-600 dark:text-red-400">{pwError}</p>}
+
+        <div className="flex items-center gap-3 pt-1">
+          <button type="submit" disabled={pwState === "saving"}
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-green-600 px-5 text-sm font-semibold text-white shadow-md shadow-green-600/25 hover:bg-green-700 transition-all disabled:opacity-60">
+            {pwState === "saving" && <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>}
+            {pwState === "saved" ? "✓ Password updated!" : pwState === "saving" ? "Updating…" : "Update password"}
+          </button>
         </div>
       </form>
 
