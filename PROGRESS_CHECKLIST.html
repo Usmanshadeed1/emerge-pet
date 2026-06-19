@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EmergePet — Build Progress</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: white;
+      padding: 32px 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+
+    .overall-stats { display: flex; gap: 24px; align-items: center; }
+    .stat { text-align: center; }
+    .stat-number { font-size: 28px; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .progress-bar-wrap { margin-top: 16px; background: rgba(255,255,255,0.25); border-radius: 99px; height: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: white; border-radius: 99px; transition: width 0.4s ease; }
+    .progress-label { font-size: 12px; opacity: 0.9; margin-top: 6px; }
+
+    /* MAIN */
+    .main { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    /* PHASE CARD */
+    .phase-card {
+      background: white;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    .phase-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .phase-header:hover { background: #f8fafc; }
+
+    .phase-left { display: flex; align-items: center; gap: 14px; }
+
+    .phase-number {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 13px;
+      flex-shrink: 0;
+    }
+    .status-not-started .phase-number { background: #f1f5f9; color: #64748b; }
+    .status-in-progress .phase-number { background: #fef3c7; color: #d97706; }
+    .status-complete .phase-number { background: #dcfce7; color: #16a34a; }
+
+    .phase-title { font-size: 15px; font-weight: 600; }
+    .phase-subtitle { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+    .phase-right { display: flex; align-items: center; gap: 12px; }
+
+    .phase-badge {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 99px;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .status-not-started .phase-badge { background: #f1f5f9; color: #64748b; }
+    .status-in-progress .phase-badge { background: #fef3c7; color: #d97706; }
+    .status-complete .phase-badge { background: #dcfce7; color: #16a34a; }
+
+    .phase-mini-bar {
+      width: 80px; height: 6px;
+      background: #f1f5f9; border-radius: 99px; overflow: hidden;
+    }
+    .phase-mini-fill { height: 100%; border-radius: 99px; transition: width 0.3s ease; }
+    .status-not-started .phase-mini-fill { background: #cbd5e1; }
+    .status-in-progress .phase-mini-fill { background: #f59e0b; }
+    .status-complete .phase-mini-fill { background: #16a34a; }
+
+    .toggle-icon { font-size: 18px; color: #94a3b8; transition: transform 0.2s; }
+    .phase-card.open .toggle-icon { transform: rotate(180deg); }
+
+    /* PHASE BODY */
+    .phase-body { display: none; border-top: 1px solid #f1f5f9; }
+    .phase-card.open .phase-body { display: block; }
+
+    /* SECTIONS */
+    .section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #94a3b8;
+      padding: 14px 22px 6px;
+    }
+
+    /* STEP ITEM */
+    .step-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 22px;
+      transition: background 0.1s;
+      border-radius: 0;
+    }
+    .step-item:hover { background: #f8fafc; }
+    .step-item.checked { opacity: 0.6; }
+    .step-item.checked .step-text { text-decoration: line-through; color: #94a3b8; }
+
+    .step-item input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: #16a34a;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-text { font-size: 14px; line-height: 1.5; }
+    .step-role {
+      display: inline-block;
+      font-size: 10px; font-weight: 600;
+      padding: 1px 7px; border-radius: 4px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .role-fs { background: #ede9fe; color: #7c3aed; }
+    .role-fe { background: #dbeafe; color: #1d4ed8; }
+    .role-be { background: #fce7f3; color: #be185d; }
+
+    /* TEST SECTION */
+    .test-section { background: #f8fafc; border-top: 1px solid #f1f5f9; padding: 4px 0 10px; }
+    .test-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #16a34a;
+      padding: 10px 22px 4px;
+    }
+    .test-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 7px 22px;
+    }
+    .test-item:hover { background: #f0fdf4; }
+    .test-item.checked .step-text { text-decoration: line-through; color: #94a3b8; }
+    .test-item input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: #16a34a;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .test-item .step-text { font-size: 13px; color: #374151; }
+
+    /* DIVIDER */
+    .step-divider { height: 1px; background: #f1f5f9; margin: 2px 0; }
+
+    /* RESET BTN */
+    .reset-btn {
+      display: block; margin: 32px auto 0;
+      background: none; border: 1px solid #e2e8f0;
+      color: #94a3b8; font-size: 13px;
+      padding: 8px 20px; border-radius: 8px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .reset-btn:hover { border-color: #ef4444; color: #ef4444; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div>
+      <h1>🐾 EmergePet — Website Build Progress</h1>
+      <p>Phase 1 of 2 &nbsp;·&nbsp; MASTER_PROMPT_WEB.md</p>
+    </div>
+    <div class="overall-stats">
+      <div class="stat">
+        <div class="stat-number" id="done-count">0</div>
+        <div class="stat-label">Done</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number" id="total-count">0</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-number" id="pct-count">0%</div>
+        <div class="stat-label">Complete</div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="main-bar" style="width:0%"></div>
+  </div>
+  <div class="progress-label" id="progress-label">0 of 0 tasks completed</div>
+</div>
+
+<div class="main">
+
+  <!-- PHASE 1 -->
+  <div class="phase-card" id="phase-1">
+    <div class="phase-header" onclick="togglePhase('phase-1')">
+      <div class="phase-left">
+        <div class="phase-number">1</div>
+        <div>
+          <div class="phase-title">Project Foundation & Setup</div>
+          <div class="phase-subtitle">Initialize project, database, folder structure</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-1" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-1">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-1-1"><input type="checkbox" onchange="tick(this,'1-1')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>1.1 — Initialize Next.js 14 project with TypeScript, Tailwind CSS, ESLint</span></div>
+      <div class="step-item" id="item-1-2"><input type="checkbox" onchange="tick(this,'1-2')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>1.2 — Set up project folder structure</span></div>
+      <div class="step-item" id="item-1-3"><input type="checkbox" onchange="tick(this,'1-3')"><span class="step-text"><span class="step-role role-be">Backend</span>1.3 — Install Prisma and create full database schema (all models including LlmConfig, photoData/fileData on Pet and HealthRecord)</span></div>
+      <div class="step-item" id="item-1-4"><input type="checkbox" onchange="tick(this,'1-4')"><span class="step-text"><span class="step-role role-be">Backend</span>1.4 — Create .env.local with all environment variable placeholders (no Cloudinary — AI config is stored in DB via admin panel)</span></div>
+      <div class="step-item" id="item-1-5"><input type="checkbox" onchange="tick(this,'1-5')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>1.5 — Create global layout, Providers wrapper, placeholder home page</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 1 Test</div>
+        <div class="test-item" id="item-1-t1"><input type="checkbox" onchange="tick(this,'1-t1')"><span class="step-text">npm run dev starts with zero errors</span></div>
+        <div class="test-item" id="item-1-t2"><input type="checkbox" onchange="tick(this,'1-t2')"><span class="step-text">localhost:3333 loads placeholder page</span></div>
+        <div class="test-item" id="item-1-t3"><input type="checkbox" onchange="tick(this,'1-t3')"><span class="step-text">Prisma Studio shows all tables correctly</span></div>
+        <div class="test-item" id="item-1-t4"><input type="checkbox" onchange="tick(this,'1-t4')"><span class="step-text">.env.local exists with all placeholder keys</span></div>
+        <div class="test-item" id="item-1-t5"><input type="checkbox" onchange="tick(this,'1-t5')"><span class="step-text">TypeScript compiles with zero errors</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase-card" id="phase-2">
+    <div class="phase-header" onclick="togglePhase('phase-2')">
+      <div class="phase-left">
+        <div class="phase-number">2</div>
+        <div>
+          <div class="phase-title">Authentication</div>
+          <div class="phase-subtitle">Login, signup, Google, Apple, password reset</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-2" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-2">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-2-1"><input type="checkbox" onchange="tick(this,'2-1')"><span class="step-text"><span class="step-role role-be">Backend</span>2.1 — Install and configure Auth.js (email, Google, Apple, Prisma adapter)</span></div>
+      <div class="step-item" id="item-2-2"><input type="checkbox" onchange="tick(this,'2-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>2.2 — Build Login page (email, password, Google, Apple buttons)</span></div>
+      <div class="step-item" id="item-2-3"><input type="checkbox" onchange="tick(this,'2-3')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>2.3 — Build Signup page and register API route</span></div>
+      <div class="step-item" id="item-2-4"><input type="checkbox" onchange="tick(this,'2-4')"><span class="step-text"><span class="step-role role-be">Backend</span>2.4 — Create middleware for route protection and public routes</span></div>
+      <div class="step-item" id="item-2-5"><input type="checkbox" onchange="tick(this,'2-5')"><span class="step-text"><span class="step-role role-be">Backend</span>2.5 — Create lib/session.ts with getSession() and requireAuth() helpers</span></div>
+      <div class="step-item" id="item-2-6"><input type="checkbox" onchange="tick(this,'2-6')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>2.6 — Build forgot password and password reset flow (email via Resend)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 2 Test</div>
+        <div class="test-item" id="item-2-t1"><input type="checkbox" onchange="tick(this,'2-t1')"><span class="step-text">New user can sign up — appears in database</span></div>
+        <div class="test-item" id="item-2-t2"><input type="checkbox" onchange="tick(this,'2-t2')"><span class="step-text">Existing user can log in with correct credentials</span></div>
+        <div class="test-item" id="item-2-t3"><input type="checkbox" onchange="tick(this,'2-t3')"><span class="step-text">Wrong password shows error — does not crash</span></div>
+        <div class="test-item" id="item-2-t4"><input type="checkbox" onchange="tick(this,'2-t4')"><span class="step-text">Google and Apple Sign In buttons initiate OAuth flow</span></div>
+        <div class="test-item" id="item-2-t5"><input type="checkbox" onchange="tick(this,'2-t5')"><span class="step-text">Visiting /dashboard while logged out redirects to /login</span></div>
+        <div class="test-item" id="item-2-t6"><input type="checkbox" onchange="tick(this,'2-t6')"><span class="step-text">Forgot password sends reset email — new password works on login</span></div>
+        <div class="test-item" id="item-2-t7"><input type="checkbox" onchange="tick(this,'2-t7')"><span class="step-text">Expired reset token shows a clear error</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase-card" id="phase-3">
+    <div class="phase-header" onclick="togglePhase('phase-3')">
+      <div class="phase-left">
+        <div class="phase-number">3</div>
+        <div>
+          <div class="phase-title">Onboarding & User Profile</div>
+          <div class="phase-subtitle">5-screen onboarding, profile settings, account deletion</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-3" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-3">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-3-1"><input type="checkbox" onchange="tick(this,'3-1')"><span class="step-text"><span class="step-role role-be">Backend</span>3.1 — Add onboardingCompleted field to User model, update middleware</span></div>
+      <div class="step-item" id="item-3-2"><input type="checkbox" onchange="tick(this,'3-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>3.2 — Build 5-screen onboarding flow (Welcome, Pet Name, Details, Photo, First Record)</span></div>
+      <div class="step-item" id="item-3-3"><input type="checkbox" onchange="tick(this,'3-3')"><span class="step-text"><span class="step-role role-be">Backend</span>3.3 — Build onboarding completion API (creates pet, uploads photo, sets flag)</span></div>
+      <div class="step-item" id="item-3-4"><input type="checkbox" onchange="tick(this,'3-4')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>3.4 — Build profile settings page (name, emoji, family invite, delete account button)</span></div>
+      <div class="step-item" id="item-3-5"><input type="checkbox" onchange="tick(this,'3-5')"><span class="step-text"><span class="step-role role-be">Backend</span>3.5 — Build account deletion API (2-step confirmation, cascading delete)</span></div>
+      <div class="step-item" id="item-3-6"><input type="checkbox" onchange="tick(this,'3-6')"><span class="step-text"><span class="step-role role-be">Backend</span>3.6 — Set up Mailchimp auto-subscribe on user registration</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 3 Test</div>
+        <div class="test-item" id="item-3-t1"><input type="checkbox" onchange="tick(this,'3-t1')"><span class="step-text">New user after signup is redirected to /onboarding</span></div>
+        <div class="test-item" id="item-3-t2"><input type="checkbox" onchange="tick(this,'3-t2')"><span class="step-text">All 5 onboarding screens navigate correctly forward and back</span></div>
+        <div class="test-item" id="item-3-t3"><input type="checkbox" onchange="tick(this,'3-t3')"><span class="step-text">Completing onboarding creates pet and redirects to dashboard</span></div>
+        <div class="test-item" id="item-3-t4"><input type="checkbox" onchange="tick(this,'3-t4')"><span class="step-text">Returning user goes directly to dashboard</span></div>
+        <div class="test-item" id="item-3-t5"><input type="checkbox" onchange="tick(this,'3-t5')"><span class="step-text">Account deletion requires typing DELETE — removes all data</span></div>
+        <div class="test-item" id="item-3-t6"><input type="checkbox" onchange="tick(this,'3-t6')"><span class="step-text">New user email appears in Mailchimp after signup</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase-card" id="phase-4">
+    <div class="phase-header" onclick="togglePhase('phase-4')">
+      <div class="phase-left">
+        <div class="phase-number">4</div>
+        <div>
+          <div class="phase-title">Pet Profiles</div>
+          <div class="phase-subtitle">Dashboard grid, add/edit/delete pets, photo upload</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-4" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-4">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-4-1"><input type="checkbox" onchange="tick(this,'4-1')"><span class="step-text"><span class="step-role role-be">Backend</span>4.1 — Create pets CRUD API routes (GET, POST, PATCH, DELETE)</span></div>
+      <div class="step-item" id="item-4-2"><input type="checkbox" onchange="tick(this,'4-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>4.2 — Build main dashboard with pet grid and Add Pet card</span></div>
+      <div class="step-item" id="item-4-3"><input type="checkbox" onchange="tick(this,'4-3')"><span class="step-text"><span class="step-role role-fe">Frontend</span>4.3 — Build Add Pet form with all fields and validation</span></div>
+      <div class="step-item" id="item-4-4"><input type="checkbox" onchange="tick(this,'4-4')"><span class="step-text"><span class="step-role role-fe">Frontend</span>4.4 — Build pet detail page with tab navigation</span></div>
+      <div class="step-item" id="item-4-5"><input type="checkbox" onchange="tick(this,'4-5')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>4.5 — Implement pet photo upload via database (base64 storage, /api/pets/[id]/photo route to serve image, 2MB limit)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 4 Test</div>
+        <div class="test-item" id="item-4-t1"><input type="checkbox" onchange="tick(this,'4-t1')"><span class="step-text">Dashboard shows pet grid with all user pets</span></div>
+        <div class="test-item" id="item-4-t2"><input type="checkbox" onchange="tick(this,'4-t2')"><span class="step-text">New pet saves to database and appears on dashboard</span></div>
+        <div class="test-item" id="item-4-t3"><input type="checkbox" onchange="tick(this,'4-t3')"><span class="step-text">Edit form loads pre-filled — changes save correctly</span></div>
+        <div class="test-item" id="item-4-t4"><input type="checkbox" onchange="tick(this,'4-t4')"><span class="step-text">Delete removes the pet and returns to dashboard</span></div>
+        <div class="test-item" id="item-4-t5"><input type="checkbox" onchange="tick(this,'4-t5')"><span class="step-text">Pet photo uploads to Cloudinary and displays correctly</span></div>
+        <div class="test-item" id="item-4-t6"><input type="checkbox" onchange="tick(this,'4-t6')"><span class="step-text">User cannot access another user's pet by changing the URL</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase-card" id="phase-5">
+    <div class="phase-header" onclick="togglePhase('phase-5')">
+      <div class="phase-left">
+        <div class="phase-number">5</div>
+        <div>
+          <div class="phase-title">Health Records</div>
+          <div class="phase-subtitle">Manual entry, PDF AI extraction, clinic upload, drug normalization</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-5" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-5">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-5-1"><input type="checkbox" onchange="tick(this,'5-1')"><span class="step-text"><span class="step-role role-be">Backend</span>5.1 — Create health records CRUD API routes</span></div>
+      <div class="step-item" id="item-5-2"><input type="checkbox" onchange="tick(this,'5-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>5.2 — Build health records tab UI (grouped by type, source badges, Add Record modal)</span></div>
+      <div class="step-item" id="item-5-3"><input type="checkbox" onchange="tick(this,'5-3')"><span class="step-text"><span class="step-role role-fe">Frontend</span>5.3 — Build vaccine tracker (dogs: Rabies, DH2PPv, Bordetella, Lyme / cats: Rabies, FVRCP)</span></div>
+      <div class="step-item" id="item-5-4"><input type="checkbox" onchange="tick(this,'5-4')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>5.4 — Build PDF upload via database (base64, pdf-parse for text extraction, stored on HealthRecord.fileData, /api/records/[id]/file to serve download)</span></div>
+      <div class="step-item" id="item-5-5"><input type="checkbox" onchange="tick(this,'5-5')"><span class="step-text"><span class="step-role role-be">Backend</span>5.5 — Build AI PDF extraction pipeline (structured JSON, date flags)</span></div>
+      <div class="step-item" id="item-5-6"><input type="checkbox" onchange="tick(this,'5-6')"><span class="step-text"><span class="step-role role-fe">Frontend</span>5.6 — Build AI extraction review UI (checkboxes, editable names, warnings)</span></div>
+      <div class="step-item" id="item-5-7"><input type="checkbox" onchange="tick(this,'5-7')"><span class="step-text"><span class="step-role role-be">Backend</span>5.7 — Build drug normalization (brand → generic map + RxNorm API fallback)</span></div>
+      <div class="step-item" id="item-5-8"><input type="checkbox" onchange="tick(this,'5-8')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>5.8 — Build clinic record request flow (email with secure one-time upload link)</span></div>
+      <div class="step-item" id="item-5-9"><input type="checkbox" onchange="tick(this,'5-9')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>5.9 — Build clinic upload page (public, no login, drag-and-drop, owner notification)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 5 Test</div>
+        <div class="test-item" id="item-5-t1"><input type="checkbox" onchange="tick(this,'5-t1')"><span class="step-text">Manual records added for all 6 types — fields save correctly</span></div>
+        <div class="test-item" id="item-5-t2"><input type="checkbox" onchange="tick(this,'5-t2')"><span class="step-text">Records display grouped by type with correct source badges</span></div>
+        <div class="test-item" id="item-5-t3"><input type="checkbox" onchange="tick(this,'5-t3')"><span class="step-text">Vaccine tracker shows correct status for each core vaccine</span></div>
+        <div class="test-item" id="item-5-t4"><input type="checkbox" onchange="tick(this,'5-t4')"><span class="step-text">Valid PDF triggers AI extraction — extracted records appear in review UI</span></div>
+        <div class="test-item" id="item-5-t5"><input type="checkbox" onchange="tick(this,'5-t5')"><span class="step-text">Corrupt PDF shows error — does not call AI</span></div>
+        <div class="test-item" id="item-5-t6"><input type="checkbox" onchange="tick(this,'5-t6')"><span class="step-text">Date warnings appear on records with impossible dates</span></div>
+        <div class="test-item" id="item-5-t7"><input type="checkbox" onchange="tick(this,'5-t7')"><span class="step-text">Brand-name drug normalized — both names shown in record</span></div>
+        <div class="test-item" id="item-5-t8"><input type="checkbox" onchange="tick(this,'5-t8')"><span class="step-text">Clinic receives email with upload link — record appears with CLINIC_UPLOADED badge</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 6 -->
+  <div class="phase-card" id="phase-6">
+    <div class="phase-header" onclick="togglePhase('phase-6')">
+      <div class="phase-left">
+        <div class="phase-number">6</div>
+        <div>
+          <div class="phase-title">Reminders</div>
+          <div class="phase-subtitle">Calendar view, notifications, weekly AI summary email</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-6" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-6">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-6-1"><input type="checkbox" onchange="tick(this,'6-1')"><span class="step-text"><span class="step-role role-be">Backend</span>6.1 — Create reminders CRUD API routes (with points stub)</span></div>
+      <div class="step-item" id="item-6-2"><input type="checkbox" onchange="tick(this,'6-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>6.2 — Build reminders calendar page (colored dots, day panel, check-off)</span></div>
+      <div class="step-item" id="item-6-3"><input type="checkbox" onchange="tick(this,'6-3')"><span class="step-text"><span class="step-role role-fe">Frontend</span>6.3 — Build Add/Edit Reminder modal (all fields, frequency selector)</span></div>
+      <div class="step-item" id="item-6-4"><input type="checkbox" onchange="tick(this,'6-4')"><span class="step-text"><span class="step-role role-be">Backend</span>6.4 — Build daily email notifications for reminders via Resend (cron)</span></div>
+      <div class="step-item" id="item-6-5"><input type="checkbox" onchange="tick(this,'6-5')"><span class="step-text"><span class="step-role role-be">Backend</span>6.5 — Build weekly AI health summary email (Monday cron, smart send)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 6 Test</div>
+        <div class="test-item" id="item-6-t1"><input type="checkbox" onchange="tick(this,'6-t1')"><span class="step-text">Reminders added for all types — fields save correctly</span></div>
+        <div class="test-item" id="item-6-t2"><input type="checkbox" onchange="tick(this,'6-t2')"><span class="step-text">Calendar shows colored dots on correct dates</span></div>
+        <div class="test-item" id="item-6-t3"><input type="checkbox" onchange="tick(this,'6-t3')"><span class="step-text">Checking off a reminder marks it complete in database</span></div>
+        <div class="test-item" id="item-6-t4"><input type="checkbox" onchange="tick(this,'6-t4')"><span class="step-text">Email notification sent for reminders due today and tomorrow</span></div>
+        <div class="test-item" id="item-6-t5"><input type="checkbox" onchange="tick(this,'6-t5')"><span class="step-text">Weekly summary email sends when concerns exist — skips when all is fine</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 7 -->
+  <div class="phase-card" id="phase-7">
+    <div class="phase-header" onclick="togglePhase('phase-7')">
+      <div class="phase-left">
+        <div class="phase-number">7</div>
+        <div>
+          <div class="phase-title">Care Tips & Breed Care Guide</div>
+          <div class="phase-subtitle">Static tip library and AI breed-specific guide</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-7" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-7">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-7-1"><input type="checkbox" onchange="tick(this,'7-1')"><span class="step-text"><span class="step-role role-fe">Frontend</span>7.1 — Build Care Tips page (18 static tips, species filtered)</span></div>
+      <div class="step-item" id="item-7-2"><input type="checkbox" onchange="tick(this,'7-2')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>7.2 — Build AI Breed Care Guide (API + UI, cached 30 days)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 7 Test</div>
+        <div class="test-item" id="item-7-t1"><input type="checkbox" onchange="tick(this,'7-t1')"><span class="step-text">18 care tips display — filtered correctly by species</span></div>
+        <div class="test-item" id="item-7-t2"><input type="checkbox" onchange="tick(this,'7-t2')"><span class="step-text">Breed Care Guide generates and displays in organized sections</span></div>
+        <div class="test-item" id="item-7-t3"><input type="checkbox" onchange="tick(this,'7-t3')"><span class="step-text">Revisiting breed guide within 30 days uses cached version (no AI call)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 8 -->
+  <div class="phase-card" id="phase-8">
+    <div class="phase-header" onclick="togglePhase('phase-8')">
+      <div class="phase-left">
+        <div class="phase-number">8</div>
+        <div>
+          <div class="phase-title">Admin Panel &amp; Dynamic App Settings</div>
+          <div class="phase-subtitle">Admin bootstrap, multi-provider LLM, AI prompts, all credentials in DB</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-8" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-8">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-8-1"><input type="checkbox" onchange="tick(this,'8-1')"><span class="step-text"><span class="step-role role-be">Backend</span>8.1 — Create lib/admin.ts with requireAdmin(). Build /setup one-time bootstrap page (SETUP_SECRET protected, self-disables after first admin). Add Make Admin / Remove Admin buttons in Admin Users page.</span></div>
+      <div class="step-item" id="item-8-2"><input type="checkbox" onchange="tick(this,'8-2')"><span class="step-text"><span class="step-role role-be">Backend</span>8.2 — Add AppSettings model and update LlmConfig model (one record per provider: label, provider enum, baseUrl, apiKey encrypted, model string, isActive). Create lib/settings.ts with AES-256 encryption. Add prompt_* keys to AppSettings.</span></div>
+      <div class="step-item" id="item-8-3"><input type="checkbox" onchange="tick(this,'8-3')"><span class="step-text"><span class="step-role role-be">Backend</span>8.3 — Build lib/ai.ts — rotates through active LlmConfig records (llm_active_index in AppSettings), native fetch, no SDK. Build lib/prompts.ts with default system prompt constants for all 6 AI features.</span></div>
+      <div class="step-item" id="item-8-4"><input type="checkbox" onchange="tick(this,'8-4')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>8.4 — Build admin layout (sidebar: Analytics, Users, Subscriptions, EMR Keys, App Settings)</span></div>
+      <div class="step-item" id="item-8-5"><input type="checkbox" onchange="tick(this,'8-5')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>8.5 — Build Admin Analytics page — stat cards: users, pets, records, subscriptions, new this week, reminders</span></div>
+      <div class="step-item" id="item-8-6"><input type="checkbox" onchange="tick(this,'8-6')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>8.6 — Build Admin Users page — searchable table, expand for pets, deactivate toggle, Make Admin / Remove Admin buttons</span></div>
+      <div class="step-item" id="item-8-7"><input type="checkbox" onchange="tick(this,'8-7')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>8.7 — Build Admin Subscriptions page — filter tabs (All / Active / Cancelled / Expired), revenue estimate</span></div>
+      <div class="step-item" id="item-8-8"><input type="checkbox" onchange="tick(this,'8-8')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>8.8 — Build Admin EMR Keys page — generate key (shown once, stored hashed), mask in table, revoke</span></div>
+      <div class="step-item" id="item-8-9"><input type="checkbox" onchange="tick(this,'8-9')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>8.9 — Build Admin App Settings — Services tab: LLM provider accordion cards (collapsed header, expand to edit, + Add Provider, rotation counter), Email section (Resend + SMTP both as accordion cards with Active toggle — only one active at a time, Test button on each), Payments, Maps, Marketing sections</span></div>
+      <div class="step-item" id="item-8-10"><input type="checkbox" onchange="tick(this,'8-10')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>8.10 — Build AI Prompts tab in App Settings — editable textarea per feature (Symptom Checker, Breed Guide, Health Score, Visit Prep, Advisor, Weekly Summary), Save + Reset to Default per card, Custom/Default badge</span></div>
+      <div class="step-item" id="item-8-11"><input type="checkbox" onchange="tick(this,'8-11')"><span class="step-text"><span class="step-role role-be">Backend</span>8.11 — Install nodemailer. Rewrite lib/email.ts as unified email helper — reads email_provider from AppSettings, routes all sending through Resend (API) or SMTP (nodemailer). Create /api/admin/settings/test-smtp route. All app email goes through lib/email.ts only.</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 8 Test</div>
+        <div class="test-item" id="item-8-t1"><input type="checkbox" onchange="tick(this,'8-t1')"><span class="step-text">Non-admin visiting /admin is redirected to dashboard</span></div>
+        <div class="test-item" id="item-8-t2"><input type="checkbox" onchange="tick(this,'8-t2')"><span class="step-text">/setup page works — enters secret, account becomes admin, page self-disables permanently</span></div>
+        <div class="test-item" id="item-8-t3"><input type="checkbox" onchange="tick(this,'8-t3')"><span class="step-text">Admin can access all admin pages</span></div>
+        <div class="test-item" id="item-8-t4"><input type="checkbox" onchange="tick(this,'8-t4')"><span class="step-text">Make Admin / Remove Admin buttons work on Users page — cannot modify own account</span></div>
+        <div class="test-item" id="item-8-t5"><input type="checkbox" onchange="tick(this,'8-t5')"><span class="step-text">AppSettings and updated LlmConfig tables exist after migration</span></div>
+        <div class="test-item" id="item-8-t6"><input type="checkbox" onchange="tick(this,'8-t6')"><span class="step-text">Selecting a provider dropdown auto-fills base URL and shows model suggestions</span></div>
+        <div class="test-item" id="item-8-t7"><input type="checkbox" onchange="tick(this,'8-t7')"><span class="step-text">Test button on provider card returns a live AI response inline</span></div>
+        <div class="test-item" id="item-8-t8"><input type="checkbox" onchange="tick(this,'8-t8')"><span class="step-text">Multiple providers can be added — Active toggle enables/disables each in rotation</span></div>
+        <div class="test-item" id="item-8-t9"><input type="checkbox" onchange="tick(this,'8-t9')"><span class="step-text">After at least one active provider saved, Breed Guide on pet page generates (end-to-end lib/ai.ts proof)</span></div>
+        <div class="test-item" id="item-8-t10"><input type="checkbox" onchange="tick(this,'8-t10')"><span class="step-text">AI Prompts tab — editing and saving a prompt changes what the AI receives. Reset restores default. Custom/Default badge updates.</span></div>
+        <div class="test-item" id="item-8-t11"><input type="checkbox" onchange="tick(this,'8-t11')"><span class="step-text">LLM provider cards are accordion — collapsed by default, click expands fields</span></div>
+        <div class="test-item" id="item-8-t12b"><input type="checkbox" onchange="tick(this,'8-t12b')"><span class="step-text">Resend card: API key saves, Active toggle works, Test sends a real email to admin</span></div>
+        <div class="test-item" id="item-8-t12c"><input type="checkbox" onchange="tick(this,'8-t12c')"><span class="step-text">SMTP card: all fields save, Active toggle works, Test sends a real email via nodemailer</span></div>
+        <div class="test-item" id="item-8-t12d"><input type="checkbox" onchange="tick(this,'8-t12d')"><span class="step-text">Only one email provider active at a time — activating one disables the other</span></div>
+        <div class="test-item" id="item-8-t12e"><input type="checkbox" onchange="tick(this,'8-t12e')"><span class="step-text">Admin saves RevenueCat, Google Places, Mailchimp configs in Services tab</span></div>
+        <div class="test-item" id="item-8-t12"><input type="checkbox" onchange="tick(this,'8-t12')"><span class="step-text">Deactivating a user prevents login — reactivating restores access</span></div>
+        <div class="test-item" id="item-8-t13"><input type="checkbox" onchange="tick(this,'8-t13')"><span class="step-text">EMR key generated — shown once — masked in table afterwards</span></div>
+        <div class="test-item" id="item-8-t14"><input type="checkbox" onchange="tick(this,'8-t14')"><span class="step-text">Analytics page shows correct counts from database</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 9 -->
+  <div class="phase-card" id="phase-9">
+    <div class="phase-header" onclick="togglePhase('phase-9')">
+      <div class="phase-left">
+        <div class="phase-number">9</div>
+        <div>
+          <div class="phase-title">AI Symptom Checker <span style="font-size:11px;color:#d97706;font-weight:600;background:#fef3c7;padding:2px 6px;border-radius:4px;margin-left:6px;">Premium</span></div>
+          <div class="phase-subtitle">URGENT / MONITOR / NON-URGENT with nearby clinics</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-9" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-9">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-9-1"><input type="checkbox" onchange="tick(this,'9-1')"><span class="step-text"><span class="step-role role-be">Backend</span>9.1 — Create symptom checker API (premium gate, callAI() from lib/ai.ts, structured JSON response)</span></div>
+      <div class="step-item" id="item-9-2"><input type="checkbox" onchange="tick(this,'9-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>9.2 — Build symptom checker UI (pet selector, text input, urgency banner)</span></div>
+      <div class="step-item" id="item-9-3"><input type="checkbox" onchange="tick(this,'9-3')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>9.3 — Build nearby clinics feature (Google Places key from AppSettings, clinic cards for URGENT results)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 9 Test</div>
+        <div class="test-item" id="item-9-t1"><input type="checkbox" onchange="tick(this,'9-t1')"><span class="step-text">Free user sees upgrade prompt — cannot access checker</span></div>
+        <div class="test-item" id="item-9-t2"><input type="checkbox" onchange="tick(this,'9-t2')"><span class="step-text">Premium user gets URGENT / MONITOR / NON-URGENT result</span></div>
+        <div class="test-item" id="item-9-t3"><input type="checkbox" onchange="tick(this,'9-t3')"><span class="step-text">URGENT shows nearby clinic cards with directions and call buttons</span></div>
+        <div class="test-item" id="item-9-t4"><input type="checkbox" onchange="tick(this,'9-t4')"><span class="step-text">Start New Assessment clears form and results</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 10 -->
+  <div class="phase-card" id="phase-10">
+    <div class="phase-header" onclick="togglePhase('phase-10')">
+      <div class="phase-left">
+        <div class="phase-number">10</div>
+        <div>
+          <div class="phase-title">AI Visit Prep</div>
+          <div class="phase-subtitle">Structured AI summary before vet appointments</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-10" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-10">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-10-1"><input type="checkbox" onchange="tick(this,'10-1')"><span class="step-text"><span class="step-role role-be">Backend</span>10.1 — Create visit prep API (reads pet records, callAI(), returns 5 structured sections)</span></div>
+      <div class="step-item" id="item-10-2"><input type="checkbox" onchange="tick(this,'10-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>10.2 — Build visit prep UI (section cards, share button, regenerate)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 10 Test</div>
+        <div class="test-item" id="item-10-t1"><input type="checkbox" onchange="tick(this,'10-t1')"><span class="step-text">All 5 sections display correctly (Concerns, Meds, Questions, Upcoming, Labs)</span></div>
+        <div class="test-item" id="item-10-t2"><input type="checkbox" onchange="tick(this,'10-t2')"><span class="step-text">Share button copies clean formatted text to clipboard</span></div>
+        <div class="test-item" id="item-10-t3"><input type="checkbox" onchange="tick(this,'10-t3')"><span class="step-text">Regenerate fetches a fresh result</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 11 -->
+  <div class="phase-card" id="phase-11">
+    <div class="phase-header" onclick="togglePhase('phase-11')">
+      <div class="phase-left">
+        <div class="phase-number">11</div>
+        <div>
+          <div class="phase-title">Pet Health Score <span style="font-size:11px;color:#d97706;font-weight:600;background:#fef3c7;padding:2px 6px;border-radius:4px;margin-left:6px;">Premium</span></div>
+          <div class="phase-subtitle">AI score out of 100 with 6 categories and recommendations</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-11" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-11">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-11-1"><input type="checkbox" onchange="tick(this,'11-1')"><span class="step-text"><span class="step-role role-be">Backend</span>11.1 — Create health score API (premium gate, callAI(), 6 categories, letter grade)</span></div>
+      <div class="step-item" id="item-11-2"><input type="checkbox" onchange="tick(this,'11-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>11.2 — Build health score UI (ring, grade, progress bars, recommendations, premium gate)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 11 Test</div>
+        <div class="test-item" id="item-11-t1"><input type="checkbox" onchange="tick(this,'11-t1')"><span class="step-text">Free user sees upgrade prompt</span></div>
+        <div class="test-item" id="item-11-t2"><input type="checkbox" onchange="tick(this,'11-t2')"><span class="step-text">Premium user generates score — ring, grade, bars, recommendations all display</span></div>
+        <div class="test-item" id="item-11-t3"><input type="checkbox" onchange="tick(this,'11-t3')"><span class="step-text">Score color matches correct range (green/orange/red)</span></div>
+        <div class="test-item" id="item-11-t4"><input type="checkbox" onchange="tick(this,'11-t4')"><span class="step-text">Regenerate fetches a new score</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 12 -->
+  <div class="phase-card" id="phase-12">
+    <div class="phase-header" onclick="togglePhase('phase-12')">
+      <div class="phase-left">
+        <div class="phase-number">12</div>
+        <div>
+          <div class="phase-title">Pet Care Advisor Chatbot</div>
+          <div class="phase-subtitle">AI chatbot with species-aware answers and product links</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-12" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-12">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-12-1"><input type="checkbox" onchange="tick(this,'12-1')"><span class="step-text"><span class="step-role role-be">Backend</span>12.1 — Create pet advisor API (species-aware, conversation history, callAI())</span></div>
+      <div class="step-item" id="item-12-2"><input type="checkbox" onchange="tick(this,'12-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>12.2 — Build advisor chat UI (thread, suggested questions, product links, New Conversation)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 12 Test</div>
+        <div class="test-item" id="item-12-t1"><input type="checkbox" onchange="tick(this,'12-t1')"><span class="step-text">Species-specific suggested questions appear for dogs and cats</span></div>
+        <div class="test-item" id="item-12-t2"><input type="checkbox" onchange="tick(this,'12-t2')"><span class="step-text">Sending a message returns a relevant AI response</span></div>
+        <div class="test-item" id="item-12-t3"><input type="checkbox" onchange="tick(this,'12-t3')"><span class="step-text">Product links are clickable in responses</span></div>
+        <div class="test-item" id="item-12-t4"><input type="checkbox" onchange="tick(this,'12-t4')"><span class="step-text">New Conversation clears the thread</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 13 -->
+  <div class="phase-card" id="phase-13">
+    <div class="phase-header" onclick="togglePhase('phase-13')">
+      <div class="phase-left">
+        <div class="phase-number">13</div>
+        <div>
+          <div class="phase-title">QR Code Emergency Sharing <span style="font-size:11px;color:#d97706;font-weight:600;background:#fef3c7;padding:2px 6px;border-radius:4px;margin-left:6px;">Premium</span></div>
+          <div class="phase-subtitle">Unique QR per pet, public emergency page, no login needed</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-13" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-13">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-13-1"><input type="checkbox" onchange="tick(this,'13-1')"><span class="step-text"><span class="step-role role-be">Backend</span>13.1 — Add qrToken to Pet model (migration), auto-generate on creation, /api/pets/[id]/qr returns QR image</span></div>
+      <div class="step-item" id="item-13-2"><input type="checkbox" onchange="tick(this,'13-2')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>13.2 — Build public emergency page (app/emergency/[token]/page.tsx — SSR, red banner, full pet + records, no auth)</span></div>
+      <div class="step-item" id="item-13-3"><input type="checkbox" onchange="tick(this,'13-3')"><span class="step-text"><span class="step-role role-fe">Frontend</span>13.3 — Build QR code tab UI (display, download, copy link, premium gate)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 13 Test</div>
+        <div class="test-item" id="item-13-t1"><input type="checkbox" onchange="tick(this,'13-t1')"><span class="step-text">Free user sees upgrade prompt</span></div>
+        <div class="test-item" id="item-13-t2"><input type="checkbox" onchange="tick(this,'13-t2')"><span class="step-text">QR code image downloads correctly</span></div>
+        <div class="test-item" id="item-13-t3"><input type="checkbox" onchange="tick(this,'13-t3')"><span class="step-text">Visiting QR URL opens correct emergency page with no login required</span></div>
+        <div class="test-item" id="item-13-t4"><input type="checkbox" onchange="tick(this,'13-t4')"><span class="step-text">Invalid QR token shows a 404 page</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 14 -->
+  <div class="phase-card" id="phase-14">
+    <div class="phase-header" onclick="togglePhase('phase-14')">
+      <div class="phase-left">
+        <div class="phase-number">14</div>
+        <div>
+          <div class="phase-title">Vet Portal Access</div>
+          <div class="phase-subtitle">8-char codes, structured visit notes, file upload by vet</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-14" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-14">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-14-1"><input type="checkbox" onchange="tick(this,'14-1')"><span class="step-text"><span class="step-role role-be">Backend</span>14.1 — Create vet access API routes (generate code, list active, revoke, public verify)</span></div>
+      <div class="step-item" id="item-14-2"><input type="checkbox" onchange="tick(this,'14-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>14.2 — Build vet access section on pet page (generate code modal, list, revoke)</span></div>
+      <div class="step-item" id="item-14-3"><input type="checkbox" onchange="tick(this,'14-3')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>14.3 — Build vet portal page (code entry, read-only pet view, structured visit note form, Resend email from AppSettings)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 14 Test</div>
+        <div class="test-item" id="item-14-t1"><input type="checkbox" onchange="tick(this,'14-t1')"><span class="step-text">Owner generates vet code — appears in active vet list</span></div>
+        <div class="test-item" id="item-14-t2"><input type="checkbox" onchange="tick(this,'14-t2')"><span class="step-text">Vet enters code — sees correct pet profile and records</span></div>
+        <div class="test-item" id="item-14-t3"><input type="checkbox" onchange="tick(this,'14-t3')"><span class="step-text">Vet submits visit note — record appears with blue VET_PUSHED badge</span></div>
+        <div class="test-item" id="item-14-t4"><input type="checkbox" onchange="tick(this,'14-t4')"><span class="step-text">Owner receives email when vet pushes a record</span></div>
+        <div class="test-item" id="item-14-t5"><input type="checkbox" onchange="tick(this,'14-t5')"><span class="step-text">Revoked code no longer works on portal</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 15 -->
+  <div class="phase-card" id="phase-15">
+    <div class="phase-header" onclick="togglePhase('phase-15')">
+      <div class="phase-left">
+        <div class="phase-number">15</div>
+        <div>
+          <div class="phase-title">Pet Sitter Access</div>
+          <div class="phase-subtitle">Temporary links with expiry and pet restrictions</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-15" style="width:100%"></div></div>
+        <div class="phase-badge" id="badge-phase-15" style="background:#dcfce7;color:#166534;">✅ Complete</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-15-1"><input type="checkbox" onchange="tick(this,'15-1')"><span class="step-text"><span class="step-role role-be">Backend</span>15.1 — Create sitter access API routes (generate token with expiry, list, revoke, public view)</span></div>
+      <div class="step-item" id="item-15-2"><input type="checkbox" onchange="tick(this,'15-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>15.2 — Build sitter link management UI (create form with duration + pet selector, list, copy, revoke)</span></div>
+      <div class="step-item" id="item-15-3"><input type="checkbox" onchange="tick(this,'15-3')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>15.3 — Build sitter view page (app/sitter/[token]/page.tsx — public, shows allowed pets, reminders, recent records)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 15 Test</div>
+        <div class="test-item" id="item-15-t1"><input type="checkbox" onchange="tick(this,'15-t1')"><span class="step-text">Sitter link created with correct expiry — shareable URL works</span></div>
+        <div class="test-item" id="item-15-t2"><input type="checkbox" onchange="tick(this,'15-t2')"><span class="step-text">Sitter sees allowed pets, upcoming reminders, recent records</span></div>
+        <div class="test-item" id="item-15-t3"><input type="checkbox" onchange="tick(this,'15-t3')"><span class="step-text">Sitter cannot see pets not included in the link</span></div>
+        <div class="test-item" id="item-15-t4"><input type="checkbox" onchange="tick(this,'15-t4')"><span class="step-text">Expired link shows expired message</span></div>
+        <div class="test-item" id="item-15-t5"><input type="checkbox" onchange="tick(this,'15-t5')"><span class="step-text">Revoked link immediately shows expired</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 16 -->
+  <div class="phase-card" id="phase-16">
+    <div class="phase-header" onclick="togglePhase('phase-16')">
+      <div class="phase-left">
+        <div class="phase-number">16</div>
+        <div>
+          <div class="phase-title">Rewards System <span style="font-size:11px;color:#d97706;font-weight:600;background:#fef3c7;padding:2px 6px;border-radius:4px;margin-left:6px;">Premium</span></div>
+          <div class="phase-subtitle">Points engine, 5 tiers, 9 badges</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-16" style="width:100%"></div></div>
+        <div class="phase-badge" id="badge-phase-16" style="background:#dcfce7;color:#166534;">✅ Complete</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-16-1"><input type="checkbox" onchange="tick(this,'16-1')"><span class="step-text"><span class="step-role role-be">Backend</span>16.1 — Build points engine (lib/rewards.ts: awardPoints, calculateTier, wire into all API routes, daily login cron)</span></div>
+      <div class="step-item" id="item-16-2"><input type="checkbox" onchange="tick(this,'16-2')"><span class="step-text"><span class="step-role role-be">Backend</span>16.2 — Build achievement system (lib/achievements.ts: 9 badges, unlock logic after each awardPoints call)</span></div>
+      <div class="step-item" id="item-16-3"><input type="checkbox" onchange="tick(this,'16-3')"><span class="step-text"><span class="step-role role-fe">Frontend</span>16.3 — Build rewards page (app/dashboard/rewards/page.tsx — tier, progress bar, transaction history, badges grid, premium gate)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 16 Test</div>
+        <div class="test-item" id="item-16-t1"><input type="checkbox" onchange="tick(this,'16-t1')"><span class="step-text">Free user sees upgrade prompt on rewards page</span></div>
+        <div class="test-item" id="item-16-t2"><input type="checkbox" onchange="tick(this,'16-t2')"><span class="step-text">Adding a pet awards 50 points — shows in transaction history</span></div>
+        <div class="test-item" id="item-16-t3"><input type="checkbox" onchange="tick(this,'16-t3')"><span class="step-text">Daily login awards 5 points — only once per day</span></div>
+        <div class="test-item" id="item-16-t4"><input type="checkbox" onchange="tick(this,'16-t4')"><span class="step-text">Tier updates correctly as points accumulate</span></div>
+        <div class="test-item" id="item-16-t5"><input type="checkbox" onchange="tick(this,'16-t5')"><span class="step-text">Badges unlock at the correct milestones and display colored</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 17 -->
+  <div class="phase-card" id="phase-17">
+    <div class="phase-header" onclick="togglePhase('phase-17')">
+      <div class="phase-left">
+        <div class="phase-number">17</div>
+        <div>
+          <div class="phase-title">Subscriptions &amp; Payments</div>
+          <div class="phase-subtitle">RevenueCat web, premium gates, upgrade page</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-17" style="width:100%"></div></div>
+        <div class="phase-badge" id="badge-phase-17" style="background:#dcfce7;color:#166534;">✅ Complete</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-17-1"><input type="checkbox" onchange="tick(this,'17-1')"><span class="step-text"><span class="step-role role-be">Backend</span>17.1 — Set up RevenueCat for web (lib/revenuecat.ts reads key from AppSettings, checkout route, status route, webhook)</span></div>
+      <div class="step-item" id="item-17-2"><input type="checkbox" onchange="tick(this,'17-2')"><span class="step-text"><span class="step-role role-be">Backend</span>17.2 — Build isPremium() helper (lib/premium.ts) and &lt;PremiumGate&gt; React component</span></div>
+      <div class="step-item" id="item-17-3"><input type="checkbox" onchange="tick(this,'17-3')"><span class="step-text"><span class="step-role role-fe">Frontend</span>17.3 — Build upgrade page (app/dashboard/upgrade/page.tsx — monthly/annual cards, manage subscription view)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 17 Test</div>
+        <div class="test-item" id="item-17-t1"><input type="checkbox" onchange="tick(this,'17-t1')"><span class="step-text">Upgrade page shows monthly and annual plan options</span></div>
+        <div class="test-item" id="item-17-t2"><input type="checkbox" onchange="tick(this,'17-t2')"><span class="step-text">After payment, Subscription record is created and premium features unlock</span></div>
+        <div class="test-item" id="item-17-t3"><input type="checkbox" onchange="tick(this,'17-t3')"><span class="step-text">Free user on any premium feature sees PremiumGate upgrade prompt</span></div>
+        <div class="test-item" id="item-17-t4"><input type="checkbox" onchange="tick(this,'17-t4')"><span class="step-text">RevenueCat webhook correctly updates subscription status on renewal/cancellation</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 18 -->
+  <div class="phase-card" id="phase-18">
+    <div class="phase-header" onclick="togglePhase('phase-18')">
+      <div class="phase-left">
+        <div class="phase-number">18</div>
+        <div>
+          <div class="phase-title">EMR Integration</div>
+          <div class="phase-subtitle">API key auth, pet lookup, record push for vet hospitals</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-18" style="width:100%"></div></div>
+        <div class="phase-badge" id="badge-phase-18">✅ Complete</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-18-1"><input type="checkbox" checked onchange="tick(this,'18-1')"><span class="step-text"><span class="step-role role-be">Backend</span>18.1 — Create EMR API auth middleware (X-API-Key header, hashed lookup)</span></div>
+      <div class="step-item" id="item-18-2"><input type="checkbox" checked onchange="tick(this,'18-2')"><span class="step-text"><span class="step-role role-be">Backend</span>18.2 — Create pet lookup endpoint (by microchip, name, species, dob)</span></div>
+      <div class="step-item" id="item-18-3"><input type="checkbox" checked onchange="tick(this,'18-3')"><span class="step-text"><span class="step-role role-be">Backend</span>18.3 — Create record push endpoint (creates record, notifies owner)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 18 Test</div>
+        <div class="test-item" id="item-18-t1"><input type="checkbox" checked onchange="tick(this,'18-t1')"><span class="step-text">Invalid API key receives 401 response</span></div>
+        <div class="test-item" id="item-18-t2"><input type="checkbox" checked onchange="tick(this,'18-t2')"><span class="step-text">Valid API key can look up a pet by microchip</span></div>
+        <div class="test-item" id="item-18-t3"><input type="checkbox" checked onchange="tick(this,'18-t3')"><span class="step-text">Valid API key pushes a record — appears in owner's app with VET_PUSHED badge</span></div>
+        <div class="test-item" id="item-18-t4"><input type="checkbox" checked onchange="tick(this,'18-t4')"><span class="step-text">Owner receives email notification on record push</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 19 -->
+  <div class="phase-card" id="phase-19">
+    <div class="phase-header" onclick="togglePhase('phase-19')">
+      <div class="phase-left">
+        <div class="phase-number">19</div>
+        <div>
+          <div class="phase-title">Newsletter & Landing Page</div>
+          <div class="phase-subtitle">Public home page, pricing, newsletter signup</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-19" style="width:100%"></div></div>
+        <div class="phase-badge" id="badge-phase-19">✅ Complete</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-19-1"><input type="checkbox" checked onchange="tick(this,'19-1')"><span class="step-text"><span class="step-role role-fe">Frontend</span>19.1 — Build public landing page (hero, features, pricing table, newsletter form, footer)</span></div>
+      <div class="step-item" id="item-19-2"><input type="checkbox" checked onchange="tick(this,'19-2')"><span class="step-text"><span class="step-role role-be">Backend</span>19.2 — Create newsletter subscribe API (Mailchimp, website-signup tag)</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 19 Test</div>
+        <div class="test-item" id="item-19-t1"><input type="checkbox" checked onchange="tick(this,'19-t1')"><span class="step-text">Landing page loads at localhost:3333 without login</span></div>
+        <div class="test-item" id="item-19-t2"><input type="checkbox" checked onchange="tick(this,'19-t2')"><span class="step-text">All sections are fully responsive</span></div>
+        <div class="test-item" id="item-19-t3"><input type="checkbox" checked onchange="tick(this,'19-t3')"><span class="step-text">Newsletter form submits — email appears in Mailchimp with website-signup tag</span></div>
+        <div class="test-item" id="item-19-t4"><input type="checkbox" checked onchange="tick(this,'19-t4')"><span class="step-text">Get Started CTA goes to signup page</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 20 -->
+  <div class="phase-card" id="phase-20">
+    <div class="phase-header" onclick="togglePhase('phase-20')">
+      <div class="phase-left">
+        <div class="phase-number">20</div>
+        <div>
+          <div class="phase-title">Polish, Security & Launch Prep</div>
+          <div class="phase-subtitle">Error handling, responsiveness, security, SEO, final testing</div>
+        </div>
+      </div>
+      <div class="phase-right">
+        <div class="phase-mini-bar"><div class="phase-mini-fill" id="bar-phase-20" style="width:0%"></div></div>
+        <div class="phase-badge" id="badge-phase-20">Not Started</div>
+        <div class="toggle-icon">▾</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="section-label">Steps</div>
+      <div class="step-item" id="item-20-1"><input type="checkbox" onchange="tick(this,'20-1')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>20.1 — Add global error handling (404, error boundary, consistent API errors)</span></div>
+      <div class="step-item" id="item-20-2"><input type="checkbox" onchange="tick(this,'20-2')"><span class="step-text"><span class="step-role role-fe">Frontend</span>20.2 — Add skeleton loaders and loading states on all pages and buttons</span></div>
+      <div class="step-item" id="item-20-3"><input type="checkbox" onchange="tick(this,'20-3')"><span class="step-text"><span class="step-role role-fe">Frontend</span>20.3 — Full mobile responsiveness audit (375px / 768px / 1280px)</span></div>
+      <div class="step-item" id="item-20-4"><input type="checkbox" onchange="tick(this,'20-4')"><span class="step-text"><span class="step-role role-be">Backend</span>20.4 — Security hardening (rate limiting, Zod validation, CORS, no secrets in responses)</span></div>
+      <div class="step-item" id="item-20-5"><input type="checkbox" onchange="tick(this,'20-5')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>20.5 — SEO and metadata (Open Graph, sitemap, robots.txt)</span></div>
+      <div class="step-item" id="item-20-6"><input type="checkbox" onchange="tick(this,'20-6')"><span class="step-text"><span class="step-role role-fs">Full Stack</span>20.6 — Performance (Next.js Image, pagination, next build passes clean)</span></div>
+      <div class="step-item" id="item-20-7"><input type="checkbox" onchange="tick(this,'20-7')"><span class="step-text"><span class="step-role role-fe">Frontend</span>20.7 — Dark / Light Theme: next-themes, Tailwind darkMode: "class", CSS variables for both modes, ThemeToggle component (sun/moon), dark classes on all shared components, WCAG AA contrast in both modes</span></div>
+      <div class="test-section">
+        <div class="test-label">✅ Phase 20 — Final End-to-End Test</div>
+        <div class="test-item" id="item-20-t1"><input type="checkbox" onchange="tick(this,'20-t1')"><span class="step-text">Journey 1 — New free user: signup → onboarding → pet → records → reminders → tips</span></div>
+        <div class="test-item" id="item-20-t2"><input type="checkbox" onchange="tick(this,'20-t2')"><span class="step-text">Journey 2 — Premium user: upgrade → symptom checker → health score → QR code → rewards</span></div>
+        <div class="test-item" id="item-20-t3"><input type="checkbox" onchange="tick(this,'20-t3')"><span class="step-text">Journey 3 — Vet: owner generates code → vet submits note → owner sees record</span></div>
+        <div class="test-item" id="item-20-t4"><input type="checkbox" onchange="tick(this,'20-t4')"><span class="step-text">Journey 4 — Sitter: create link → sitter sees pets → link expires</span></div>
+        <div class="test-item" id="item-20-t5"><input type="checkbox" onchange="tick(this,'20-t5')"><span class="step-text">Journey 5 — Clinic upload: request → clinic receives email → uploads → owner sees records</span></div>
+        <div class="test-item" id="item-20-t6"><input type="checkbox" onchange="tick(this,'20-t6')"><span class="step-text">Journey 6 — Admin: login → view users → generate EMR key → view subscriptions</span></div>
+        <div class="test-item" id="item-20-t7"><input type="checkbox" onchange="tick(this,'20-t7')"><span class="step-text">npm run build completes with zero errors</span></div>
+        <div class="test-item" id="item-20-t8"><input type="checkbox" onchange="tick(this,'20-t8')"><span class="step-text">TypeScript compiles with zero errors</span></div>
+        <div class="test-item" id="item-20-t9"><input type="checkbox" onchange="tick(this,'20-t9')"><span class="step-text">All pages responsive on mobile (375px) — no console errors</span></div>
+        <div class="test-item" id="item-20-t10"><input type="checkbox" onchange="tick(this,'20-t10')"><span class="step-text">Dark/light theme toggle works on every page — no FOUC, WCAG AA contrast verified in both modes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetAll()">Reset All Progress</button>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'emergepet_progress';
+
+  // Phase item counts (steps + tests)
+  const phases = {
+    'phase-1':  ['1-1','1-2','1-3','1-4','1-5','1-t1','1-t2','1-t3','1-t4','1-t5'],
+    'phase-2':  ['2-1','2-2','2-3','2-4','2-5','2-6','2-t1','2-t2','2-t3','2-t4','2-t5','2-t6','2-t7'],
+    'phase-3':  ['3-1','3-2','3-3','3-4','3-5','3-6','3-t1','3-t2','3-t3','3-t4','3-t5','3-t6'],
+    'phase-4':  ['4-1','4-2','4-3','4-4','4-5','4-t1','4-t2','4-t3','4-t4','4-t5','4-t6'],
+    'phase-5':  ['5-1','5-2','5-3','5-4','5-5','5-6','5-7','5-8','5-9','5-t1','5-t2','5-t3','5-t4','5-t5','5-t6','5-t7','5-t8'],
+    'phase-6':  ['6-1','6-2','6-3','6-4','6-5','6-t1','6-t2','6-t3','6-t4','6-t5'],
+    'phase-7':  ['7-1','7-2','7-t1','7-t2','7-t3'],
+    'phase-8':  ['8-1','8-2','8-3','8-4','8-5','8-6','8-7','8-8','8-9','8-10','8-11','8-t1','8-t2','8-t3','8-t4','8-t5','8-t6','8-t7','8-t8','8-t9','8-t10','8-t11','8-t12b','8-t12c','8-t12d','8-t12e','8-t12','8-t13','8-t14'],
+    'phase-9':  ['9-1','9-2','9-3','9-t1','9-t2','9-t3','9-t4'],
+    'phase-10': ['10-1','10-2','10-t1','10-t2','10-t3'],
+    'phase-11': ['11-1','11-2','11-t1','11-t2','11-t3','11-t4'],
+    'phase-12': ['12-1','12-2','12-t1','12-t2','12-t3','12-t4'],
+    'phase-13': ['13-1','13-2','13-3','13-t1','13-t2','13-t3','13-t4'],
+    'phase-14': ['14-1','14-2','14-3','14-t1','14-t2','14-t3','14-t4','14-t5'],
+    'phase-15': ['15-1','15-2','15-3','15-t1','15-t2','15-t3','15-t4','15-t5'],
+    'phase-16': ['16-1','16-2','16-3','16-t1','16-t2','16-t3','16-t4','16-t5'],
+    'phase-17': ['17-1','17-2','17-3','17-t1','17-t2','17-t3','17-t4'],
+    'phase-18': ['18-1','18-2','18-3','18-t1','18-t2','18-t3','18-t4'],
+    'phase-19': ['19-1','19-2','19-t1','19-t2','19-t3','19-t4'],
+    'phase-20': ['20-1','20-2','20-3','20-4','20-5','20-6','20-7','20-t1','20-t2','20-t3','20-t4','20-t5','20-t6','20-t7','20-t8','20-t9','20-t10'],
+  };
+
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+  }
+
+  function saveState(state) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function tick(checkbox, id) {
+    const state = loadState();
+    state[id] = checkbox.checked;
+    saveState(state);
+    const row = document.getElementById('item-' + id);
+    if (row) row.classList.toggle('checked', checkbox.checked);
+    updateAll();
+  }
+
+  function updateAll() {
+    const state = loadState();
+    let totalDone = 0, totalAll = 0;
+
+    for (const [phaseId, items] of Object.entries(phases)) {
+      const done = items.filter(id => state[id]).length;
+      const total = items.length;
+      totalDone += done; totalAll += total;
+
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      const bar = document.getElementById('bar-' + phaseId);
+      const badge = document.getElementById('badge-' + phaseId);
+      const card = document.getElementById(phaseId);
+      if (bar) bar.style.width = pct + '%';
+
+      card.className = card.className.replace(/status-\S+/g, '').trim();
+      if (done === 0) {
+        card.classList.add('status-not-started');
+        if (badge) badge.textContent = 'Not Started';
+      } else if (done === total) {
+        card.classList.add('status-complete');
+        if (badge) badge.textContent = '✓ Complete';
+      } else {
+        card.classList.add('status-in-progress');
+        if (badge) badge.textContent = done + ' / ' + total;
+      }
+    }
+
+    const pct = totalAll > 0 ? Math.round((totalDone / totalAll) * 100) : 0;
+    document.getElementById('done-count').textContent = totalDone;
+    document.getElementById('total-count').textContent = totalAll;
+    document.getElementById('pct-count').textContent = pct + '%';
+    document.getElementById('main-bar').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = totalDone + ' of ' + totalAll + ' tasks completed';
+  }
+
+  function togglePhase(phaseId) {
+    const card = document.getElementById(phaseId);
+    card.classList.toggle('open');
+  }
+
+  function resetAll() {
+    if (!confirm('Reset all progress? This cannot be undone.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+  function init() {
+    const state = loadState();
+    for (const items of Object.values(phases)) {
+      for (const id of items) {
+        const row = document.getElementById('item-' + id);
+        if (!row) continue;
+        const cb = row.querySelector('input[type="checkbox"]');
+        if (cb && state[id]) { cb.checked = true; row.classList.add('checked'); }
+      }
+    }
+    updateAll();
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  OWNER
+  ADMIN
+}
+
+enum Species {
+  DOG
+  CAT
+  BIRD
+  RABBIT
+  FISH
+  REPTILE
+  HAMSTER
+  OTHER
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum WeightUnit {
+  LBS
+  KG
+}
+
+enum RecordType {
+  VACCINATION
+  MEDICATION
+  VET_VISIT
+  LAB_RESULT
+  SURGERY
+  OTHER
+}
+
+enum RecordSource {
+  MANUAL
+  AI_EXTRACTED
+  VET_PUSHED
+  CLINIC_UPLOADED
+}
+
+enum VaccineStatus {
+  UP_TO_DATE
+  DUE_SOON
+  OVERDUE
+  NO_DUE_DATE
+}
+
+enum ReminderType {
+  VET_APPOINTMENT
+  MEDICATION
+  GROOMING
+  VACCINATION
+  CUSTOM
+}
+
+enum SubscriptionPlan {
+  MONTHLY
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum AiChatType {
+  SYMPTOM_CHECK
+  PET_ADVISOR
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  name                 String?
+  profileEmoji         String?
+  role                 UserRole  @default(OWNER)
+  isActive             Boolean   @default(true)
+  passwordHash         String?
+  passwordResetToken   String?
+  passwordResetExpiry  DateTime?
+  onboardingCompleted  Boolean   @default(false)
+  emailVerified        DateTime?
+  image                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  accounts          Account[]
+  sessions          Session[]
+  pets              Pet[]
+  familyMembersOf   FamilyMember[]   @relation("FamilyOwner")
+  familyMember      FamilyMember[]   @relation("FamilyMember")
+  familyInvitesSent FamilyInvite[]
+  rewardPoints      RewardPoints?
+  achievements      Achievement[]
+  pointTransactions PointTransaction[]
+  subscription      Subscription?
+  sitterAccesses    SitterAccess[]
+  aiChatHistories   AiChatHistory[]
+}
+
+// Auth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model FamilyMember {
+  id        String   @id @default(cuid())
+  userId    String
+  memberId  String
+  createdAt DateTime @default(now())
+
+  owner  User @relation("FamilyOwner", fields: [userId], references: [id], onDelete: Cascade)
+  member User @relation("FamilyMember", fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, memberId])
+}
+
+model Pet {
+  id                    String    @id @default(cuid())
+  ownerId               String
+  name                  String
+  species               Species
+  breed                 String?
+  dateOfBirth           DateTime?
+  weight                Float?
+  weightUnit            WeightUnit @default(LBS)
+  color                 String?
+  markings              String?
+  microchipId           String?
+  sex                   Sex?
+  isNeutered            Boolean   @default(false)
+  specialNotes          String?
+  photoData             String?
+  photoMimeType         String?
+  qrToken               String?   @unique
+  breedGuideContent     String?
+  breedGuideGeneratedAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  owner          User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  healthRecords  HealthRecord[]
+  vaccines       Vaccine[]
+  reminders      Reminder[]
+  vetAccesses    VetAccess[]
+  recordRequests RecordRequest[]
+  aiChatHistories AiChatHistory[]
+}
+
+model HealthRecord {
+  id                String       @id @default(cuid())
+  petId             String
+  type              RecordType
+  title             String
+  date              DateTime?
+  nextDueDate       DateTime?
+  vetName           String?
+  clinicName        String?
+  dosage            String?
+  notes             String?
+  source            RecordSource @default(MANUAL)
+  normalizedDrugName String?
+  brandDrugName     String?
+  fileData          String?
+  fileMimeType      String?
+  fileName          String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model Vaccine {
+  id               String        @id @default(cuid())
+  petId            String
+  name             String
+  administeredDate DateTime?
+  nextDueDate      DateTime?
+  vetName          String?
+  clinicName       String?
+  status           VaccineStatus @default(NO_DUE_DATE)
+  createdAt        DateTime      @default(now())
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model Reminder {
+  id          String       @id @default(cuid())
+  petId       String
+  title       String
+  type        ReminderType
+  dueDate     DateTime
+  dueTime     String?
+  frequency   String?
+  notes       String?
+  isCompleted Boolean      @default(false)
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model VetAccess {
+  id         String    @id @default(cuid())
+  petId      String
+  accessCode String    @unique
+  vetName    String?
+  vetEmail   String?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  pet        Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  visitNotes VetVisitNote[]
+}
+
+model VetVisitNote {
+  id                   String   @id @default(cuid())
+  vetAccessId          String
+  petId                String
+  chiefComplaint       String?
+  diagnosis            String?
+  treatments           String?
+  dischargeInstructions String?
+  createdAt            DateTime @default(now())
+
+  vetAccess VetAccess @relation(fields: [vetAccessId], references: [id], onDelete: Cascade)
+}
+
+model SitterAccess {
+  id        String    @id @default(cuid())
+  ownerId   String
+  label     String?
+  token     String    @unique
+  expiresAt DateTime
+  petIds    String[]
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model RecordRequest {
+  id          String    @id @default(cuid())
+  petId       String
+  clinicName  String
+  clinicEmail String
+  uploadToken String    @unique
+  isUploaded  Boolean   @default(false)
+  uploadedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+}
+
+model RewardPoints {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  totalPoints Int      @default(0)
+  tier        String   @default("New Member")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  badge       String
+  unlockedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badge])
+}
+
+model PointTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  points    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  revenueCatId      String?
+  plan              SubscriptionPlan
+  status            SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd  DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Reserved for future use — model created now, not connected to UI yet
+model AiChatHistory {
+  id        String     @id @default(cuid())
+  userId    String
+  petId     String?
+  messages  Json
+  type      AiChatType
+  createdAt DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet  Pet? @relation(fields: [petId], references: [id], onDelete: SetNull)
+}
+
+model LlmConfig {
+  id        String   @id @default(cuid())
+  label     String
+  provider  String
+  baseUrl   String
+  apiKey    String
+  model     String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AppSettings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  isEncrypted Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
+
+model FamilyInvite {
+  id        String    @id @default(cuid())
+  ownerId   String
+  token     String    @unique
+  email     String?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model EmrKey {
+  id         String    @id @default(cuid())
+  clinicName String
+  keyHash    String    @unique
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+}

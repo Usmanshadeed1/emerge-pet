@@ -2,26 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Light mode tokens ───────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background:    #fafaf9;
+  --foreground:    #0c1a0e;
+  --surface:       #ffffff;
+  --surface-2:     #f3f4f6;
+  --border:        #e5e7eb;
+  --text-primary:  #111827;
+  --text-secondary:#6b7280;
+  --brand:         #16a34a;
+  --brand-hover:   #15803d;
+  --brand-dark:    #052e16;
+  --brand-mid:     #14532d;
+  --brand-glow:    rgba(22, 163, 74, 0.18);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Dark mode tokens ────────────────────────────────── */
+.dark {
+  --background:    #0a0f0a;
+  --foreground:    #ecfdf5;
+  --surface:       #111827;
+  --surface-2:     #1f2937;
+  --border:        #374151;
+  --text-primary:  #f9fafb;
+  --text-secondary:#9ca3af;
+  --brand:         #22c55e;
+  --brand-hover:   #16a34a;
+  --brand-dark:    #052e16;
+  --brand-mid:     #14532d;
+  --brand-glow:    rgba(34, 197, 94, 0.20);
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color:            var(--foreground);
+  background:       var(--background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
+}
+
+/* ── Entrance animations ─────────────────────────────── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+.anim-slide-up  { animation: slide-up  0.45s cubic-bezier(0.22,1,0.36,1) both; }
+.anim-fade-in   { animation: fade-in   0.35s ease both; }
+.anim-scale-in  { animation: scale-in  0.4s  cubic-bezier(0.22,1,0.36,1) both; }
+
+.anim-delay-1 { animation-delay: 0.05s; }
+.anim-delay-2 { animation-delay: 0.10s; }
+.anim-delay-3 { animation-delay: 0.15s; }
+.anim-delay-4 { animation-delay: 0.20s; }
+.anim-delay-5 { animation-delay: 0.25s; }
+.anim-delay-6 { animation-delay: 0.30s; }
+
+/* ── Custom input focus glow ─────────────────────────── */
+.input-field:focus {
+  box-shadow:   0 0 0 3px var(--brand-glow), 0 1px 3px rgba(0,0,0,0.06);
+  border-color: var(--brand);
+  outline:      none;
+}
+
+/* ── Brand panel dot-grid texture ────────────────────── */
+.brand-panel-bg {
+  background-color: #052e16;
+  background-image:
+    radial-gradient(circle at 20% 20%, #166534 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, #0a4524 0%, transparent 50%),
+    radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px;
 }
