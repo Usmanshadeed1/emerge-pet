@@ -18,6 +18,9 @@
 
 # misc
 .DS_Store
+
+# Claude Code agent temp files
+.claude/worktrees/
 *.pem
 
 # debug
