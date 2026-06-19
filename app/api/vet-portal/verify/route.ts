@@ -29,7 +29,8 @@ export async function POST(req: Request) {
           sex:          true,
           isNeutered:   true,
           specialNotes: true,
-          photoData:    true,
+          photoData:     true,
+          photoMimeType: true,
           healthRecords: {
             orderBy: { date: "desc" },
             take:    50,
@@ -56,13 +57,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid or revoked access code." }, { status: 404 });
   }
 
-  const { photoData, ...petWithoutPhoto } = vetAccess.pet;
+  const { photoData, photoMimeType, ...petWithoutPhoto } = vetAccess.pet as typeof vetAccess.pet & { photoMimeType?: string | null };
 
   return NextResponse.json({
     vetAccessId: vetAccess.id,
     pet: {
       ...petWithoutPhoto,
-      hasPhoto: !!photoData,
+      photoUrl: photoData
+        ? `data:${photoMimeType ?? "image/jpeg"};base64,${photoData}`
+        : null,
     },
   });
 }

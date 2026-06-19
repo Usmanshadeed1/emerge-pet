@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export const metadata: Metadata = {
   title: {
@@ -30,6 +31,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="pointer-events-none absolute inset-0 overflow-hidden hidden dark:block" aria-hidden="true">
         <div className="absolute -top-48 -left-48 h-[500px] w-[500px] rounded-full bg-green-900/20 blur-[120px]" />
         <div className="absolute -top-24 right-[-80px] h-[400px] w-[400px] rounded-full bg-emerald-900/20 blur-[100px]" />
+      </div>
+
+      {/* Theme toggle — top right */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
       </div>
 
       {/* Content */}

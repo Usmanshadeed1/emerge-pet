@@ -14,7 +14,7 @@ export function encrypt(text: string): string {
   return iv.toString("hex") + ":" + encrypted.toString("hex");
 }
 
-function decrypt(text: string): string {
+export function decrypt(text: string): string {
   const [ivHex, encHex] = text.split(":");
   const iv = Buffer.from(ivHex, "hex");
   const key = getEncryptionKey();

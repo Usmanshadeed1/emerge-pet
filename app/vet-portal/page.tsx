@@ -29,7 +29,7 @@ interface Pet {
   sex:          string | null;
   isNeutered:   boolean;
   specialNotes: string | null;
-  hasPhoto:     boolean;
+  photoUrl:     string | null;
   healthRecords: HealthRecord[];
 }
 
@@ -180,9 +180,9 @@ export default function VetPortalPage() {
             <div className="rounded-2xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 overflow-hidden">
               <div className="flex items-start gap-4 p-5">
                 <div className="h-16 w-16 shrink-0 rounded-xl bg-gray-100 dark:bg-gray-700 overflow-hidden flex items-center justify-center text-3xl">
-                  {pet.hasPhoto
+                  {pet.photoUrl
                     // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={`/api/pets/${pet.id}/photo`} alt={pet.name} className="h-full w-full object-cover" />
+                    ? <img src={pet.photoUrl} alt={pet.name} className="h-full w-full object-cover" />
                     : speciesEmoji[pet.species] ?? "🐾"
                   }
                 </div>

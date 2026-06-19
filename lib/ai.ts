@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { getSetting, setSetting } from "./settings";
+import { getSetting, setSetting, decrypt } from "./settings";
 
 interface Message {
   role: "system" | "user" | "assistant";
@@ -29,7 +29,7 @@ export async function callAI(
   const nextIndex    = (currentIndex + 1) % configs.length;
   await setSetting("llm_active_index", String(nextIndex));
 
-  return callProvider(config.baseUrl, config.apiKey, config.model, messages, options);
+  return callProvider(config.baseUrl, decrypt(config.apiKey), config.model, messages, options);
 }
 
 export async function callProviderDirect(
