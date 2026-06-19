@@ -51,7 +51,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const fileBase64 = buffer.toString("base64");
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
+    // Use internal path to avoid pdf-parse loading test files in dev mode
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (buf: Buffer) => Promise<{ text: string }>;
     const parsed = await pdfParse(buffer);
     const extractedText = parsed.text?.trim() ?? "";
 
