@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
 import { db } from "@/lib/db";
-import Image from "next/image";
 
 interface Props {
   params: { token: string };
@@ -63,7 +62,8 @@ export default async function SitterPage({ params }: Props) {
       sex:          true,
       isNeutered:   true,
       specialNotes: true,
-      photoData:    true,
+      photoData:     true,
+      photoMimeType: true,
       reminders: {
         where:   { isCompleted: false, dueDate: { gte: now, lte: in7Days } },
         orderBy: { dueDate: "asc" },
@@ -112,11 +112,11 @@ export default async function SitterPage({ params }: Props) {
               <div className="flex items-center gap-4 px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-green-50 to-transparent">
                 <div className="relative h-16 w-16 shrink-0">
                   {pet.photoData ? (
-                    <Image
-                      src={pet.photoData}
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`data:${pet.photoMimeType ?? "image/jpeg"};base64,${pet.photoData}`}
                       alt={pet.name}
-                      fill
-                      className="rounded-2xl object-cover ring-2 ring-green-200 dark:ring-green-800"
+                      className="h-full w-full rounded-2xl object-cover ring-2 ring-green-200 dark:ring-green-800"
                     />
                   ) : (
                     <div className="h-16 w-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-3xl ring-2 ring-green-200 dark:ring-green-800">

@@ -38,11 +38,14 @@ async function sendViaSmtp(payload: EmailPayload): Promise<void> {
   }
 
   const nodemailer = await import("nodemailer");
+  const portNum = parseInt(port, 10);
+  const secure  = tls === "true";
   const transporter = nodemailer.createTransport({
     host,
-    port:   parseInt(port, 10),
-    secure: tls === "true",
-    auth:   { user, pass: password },
+    port:       portNum,
+    secure,
+    requireTLS: !secure && portNum === 587,
+    auth:       { user, pass: password },
   });
 
   await transporter.sendMail({

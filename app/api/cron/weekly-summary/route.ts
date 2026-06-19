@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { callAI } from "@/lib/ai";
-import { getSetting } from "@/lib/settings";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
 // Protected cron route — schedule: every Monday at 8 AM
 // Call with header: x-cron-secret: <CRON_SECRET>
@@ -31,11 +30,6 @@ export async function GET(req: Request) {
       },
     },
   });
-
-  // Read Resend key from AppSettings (set in admin panel)
-  const resendKey = await getSetting("resend_api_key");
-  const fromEmail = (await getSetting("resend_from_email")) ?? "noreply@emergepet.com";
-  const resend = resendKey ? new Resend(resendKey) : null;
 
   let emailsSent = 0;
 
@@ -107,18 +101,12 @@ Analyze this pet's records and reminders. If there are concerns, overdue items, 
       </div>
     `;
 
-    if (resend) {
-      await resend.emails.send({
-        from: `EmergePet <${fromEmail}>`,
-        to: user.email,
-        subject: "Your weekly pet health summary — EmergePet",
-        html,
-      });
-      emailsSent++;
-    } else {
-      console.log(`[cron/weekly-summary] Resend not configured. Would send to ${user.email}.`);
-      emailsSent++;
+    try {
+      await sendEmail({ to: user.email, subject: "Your weekly pet health summary — EmergePet", html });
+    } catch (err) {
+      console.error(`[cron/weekly-summary] Failed to send to ${user.email}:`, err);
     }
+    emailsSent++;
   }
 
   return NextResponse.json({ emailsSent, usersChecked: users.length });

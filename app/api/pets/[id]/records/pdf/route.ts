@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { callAI } from "@/lib/ai";
 import { awardPoints } from "@/lib/points";
+import { getPrompt } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -25,25 +26,6 @@ export interface ExtractedRecord {
   notes: string | null;
 }
 
-const SYSTEM_PROMPT = `You are a veterinary medical record parser. Extract all health events from the provided text.
-Return ONLY a valid JSON array with this structure — no markdown, no explanation:
-[
-  {
-    "type": "VACCINATION" | "MEDICATION" | "VET_VISIT" | "LAB_RESULT" | "SURGERY" | "OTHER",
-    "title": "short name of vaccine/drug/procedure",
-    "date": "YYYY-MM-DD or null",
-    "nextDueDate": "YYYY-MM-DD or null",
-    "vetName": "vet name or null",
-    "clinicName": "clinic name or null",
-    "dosage": "dosage string or null",
-    "notes": "any other relevant notes or null"
-  }
-]
-Rules:
-- VACCINATION for vaccines/boosters, MEDICATION for drugs/prescriptions
-- VET_VISIT for checkups, LAB_RESULT for blood work/x-rays, SURGERY for procedures
-- For approximate dates with only month/year, use the first day of that month
-- Keep titles concise. Return [] if no records can be extracted.`;
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -68,9 +50,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const buffer = Buffer.from(arrayBuffer);
     const fileBase64 = buffer.toString("base64");
 
-    // Extract text from PDF
+    // Extract text from PDF — use lib path to avoid pdf-parse's test-file check that fails in Next.js
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
+    const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (buf: Buffer) => Promise<{ text: string }>;
     const parsed = await pdfParse(buffer);
     const extractedText = parsed.text?.trim() ?? "";
 
@@ -81,10 +63,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       );
     }
 
+    const systemPrompt = await getPrompt("prompt_pdf_extraction");
+
     // Call AI via shared helper (reads provider config from AppSettings in DB)
     const aiResponse = await callAI(
       [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         { role: "user", content: extractedText.slice(0, 8000) },
       ],
       { jsonMode: true }
@@ -121,8 +105,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       petId: pet!.id,
     });
   } catch (err) {
-    if (err instanceof Error && err.message.includes("AI provider not configured")) {
-      return NextResponse.json({ error: err.message }, { status: 503 });
+    if (err instanceof Error && (err.message.includes("AI provider not configured") || err.message.includes("No AI provider configured"))) {
+      return NextResponse.json({ error: "No AI provider configured. Go to Admin → App Settings → AI/LLM and add a provider." }, { status: 503 });
     }
     console.error("[pdf/extract]", err);
     return NextResponse.json({ error: "Failed to extract records from file." }, { status: 500 });

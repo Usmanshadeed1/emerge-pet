@@ -182,7 +182,7 @@ export default function AddReminderModal({
               <select
                 value={form.petId}
                 onChange={(e) => set("petId", e.target.value)}
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3.5 py-2.5 text-sm outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 dark:ring-green-900"
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 dark:ring-green-900"
               >
                 {pets.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>

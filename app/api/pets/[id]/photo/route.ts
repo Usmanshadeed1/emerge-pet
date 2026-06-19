@@ -16,7 +16,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": pet.photoMimeType,
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "private, no-cache",
       },
     });
   } catch {

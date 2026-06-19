@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 import { randomBytes } from "crypto";
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -40,9 +36,8 @@ export async function POST(req: Request) {
 
     const uploadUrl = `${process.env.NEXTAUTH_URL ?? "http://localhost:3333"}/records/upload/${uploadToken}`;
 
-    if (resend) {
-      await resend.emails.send({
-        from:    "EmergePet <noreply@emergepet.com>",
+    try {
+      await sendEmail({
         to:      clinicEmail.trim(),
         subject: `Medical records request for ${pet.name}`,
         html: `
@@ -70,10 +65,8 @@ export async function POST(req: Request) {
           </div>
         `,
       });
-    } else {
-      console.log(
-        `[DEV] Clinic upload link for ${clinicEmail}: ${uploadUrl}`
-      );
+    } catch (err) {
+      console.error(`[record-requests] Email failed for ${clinicEmail}:`, err);
     }
 
     return NextResponse.json({ request, uploadUrl }, { status: 201 });

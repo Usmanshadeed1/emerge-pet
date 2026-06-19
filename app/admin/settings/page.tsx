@@ -40,6 +40,7 @@ const PROMPT_LABELS: Record<string, string> = {
   prompt_visit_prep:     "Visit Prep",
   prompt_advisor:        "Pet Care Advisor",
   prompt_weekly_summary: "Weekly Health Summary",
+  prompt_pdf_extraction: "PDF Record Extraction",
 };
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────

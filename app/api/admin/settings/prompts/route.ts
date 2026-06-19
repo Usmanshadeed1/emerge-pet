@@ -8,6 +8,7 @@ import {
   PROMPT_VISIT_PREP,
   PROMPT_ADVISOR,
   PROMPT_WEEKLY_SUMMARY,
+  PROMPT_PDF_EXTRACTION,
 } from "@/lib/prompts";
 
 const PROMPT_KEYS = [
@@ -17,6 +18,7 @@ const PROMPT_KEYS = [
   "prompt_visit_prep",
   "prompt_advisor",
   "prompt_weekly_summary",
+  "prompt_pdf_extraction",
 ] as const;
 
 const DEFAULTS: Record<string, string> = {
@@ -26,6 +28,7 @@ const DEFAULTS: Record<string, string> = {
   prompt_visit_prep:     PROMPT_VISIT_PREP,
   prompt_advisor:        PROMPT_ADVISOR,
   prompt_weekly_summary: PROMPT_WEEKLY_SUMMARY,
+  prompt_pdf_extraction: PROMPT_PDF_EXTRACTION,
 };
 
 export async function GET() {

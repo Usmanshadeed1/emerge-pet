@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
 // Protected cron route — call with header: x-cron-secret: <CRON_SECRET>
 // Schedule: daily at 8 AM — e.g. via Vercel Cron or an external scheduler
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
 
 export async function GET(req: Request) {
   const secret = req.headers.get("x-cron-secret");
@@ -92,18 +88,12 @@ export async function GET(req: Request) {
       </div>
     `;
 
-    if (resend) {
-      await resend.emails.send({
-        from:    "EmergePet <noreply@emergepet.com>",
-        to:      email,
-        subject: `Pet care reminders for today — EmergePet`,
-        html,
-      });
-      sent++;
-    } else {
-      console.log(`[cron/reminders] Would send to ${email}:`, ownerReminders.map((r) => r.title));
-      sent++;
+    try {
+      await sendEmail({ to: email, subject: `Pet care reminders for today — EmergePet`, html });
+    } catch (err) {
+      console.error(`[cron/reminders] Failed to send to ${email}:`, err);
     }
+    sent++;
   }
 
   return NextResponse.json({ sent, total: reminders.length });

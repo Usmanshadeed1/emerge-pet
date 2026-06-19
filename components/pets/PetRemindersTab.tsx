@@ -47,8 +47,8 @@ export default function PetRemindersTab({ petId, petName }: { petId: string; pet
         fetch("/api/pets"),
       ]);
       setReminders(await remRes.json() as Reminder[]);
-      const petData = await petRes.json() as { pets: Pet[] };
-      setPets(petData.pets ?? []);
+      const petData = await petRes.json() as Pet[];
+      setPets(Array.isArray(petData) ? petData : []);
     } finally {
       setLoading(false);
     }

@@ -34,11 +34,13 @@ export async function POST(req: Request) {
 
   try {
     const nodemailer = await import("nodemailer");
+    const portNum = parseInt(port, 10);
     const transporter = nodemailer.createTransport({
       host,
-      port:   parseInt(port, 10),
-      secure: tls,
-      auth:   { user, pass: password },
+      port:       portNum,
+      secure:     tls,
+      requireTLS: !tls && portNum === 587,
+      auth:       { user, pass: password },
     });
 
     await transporter.sendMail({

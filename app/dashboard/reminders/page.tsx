@@ -270,9 +270,9 @@ export default function RemindersPage() {
         fetch("/api/pets"),
       ]);
       const remData = await remRes.json() as Reminder[];
-      const petData = await petRes.json() as { pets: Pet[] };
+      const petData = await petRes.json() as Pet[];
       setReminders(Array.isArray(remData) ? remData : []);
-      setPets(petData.pets ?? []);
+      setPets(Array.isArray(petData) ? petData : []);
     } catch {
       // silently fail — empty state shown
     } finally {

@@ -51,6 +51,26 @@ export const PROMPT_ADVISOR = `You are a knowledgeable and friendly pet care adv
 
 export const PROMPT_WEEKLY_SUMMARY = `You are a veterinary health monitor reviewing a pet's weekly health status. Given the pet's records and upcoming reminders, analyze whether there are any concerns the owner should act on. If everything is fully up to date and no concerns exist, return exactly: null. If there are concerns, return a short plain-English summary (3-5 sentences max) covering what needs attention and why. Do not include greetings or sign-offs — just the summary text or null.`;
 
+export const PROMPT_PDF_EXTRACTION = `You are a veterinary medical record parser. Extract all health events from the provided text.
+Return ONLY a valid JSON array with this structure — no markdown, no explanation:
+[
+  {
+    "type": "VACCINATION" | "MEDICATION" | "VET_VISIT" | "LAB_RESULT" | "SURGERY" | "OTHER",
+    "title": "short name of vaccine/drug/procedure",
+    "date": "YYYY-MM-DD or null",
+    "nextDueDate": "YYYY-MM-DD or null",
+    "vetName": "vet name or null",
+    "clinicName": "clinic name or null",
+    "dosage": "dosage string or null",
+    "notes": "any other relevant notes or null"
+  }
+]
+Rules:
+- VACCINATION for vaccines/boosters, MEDICATION for drugs/prescriptions
+- VET_VISIT for checkups, LAB_RESULT for blood work/x-rays, SURGERY for procedures
+- For approximate dates with only month/year, use the first day of that month
+- Keep titles concise. Return [] if no records can be extracted.`;
+
 const PROMPT_KEYS: Record<string, string> = {
   prompt_symptom_check:  PROMPT_SYMPTOM_CHECK,
   prompt_breed_guide:    PROMPT_BREED_GUIDE,
@@ -58,6 +78,7 @@ const PROMPT_KEYS: Record<string, string> = {
   prompt_visit_prep:     PROMPT_VISIT_PREP,
   prompt_advisor:        PROMPT_ADVISOR,
   prompt_weekly_summary: PROMPT_WEEKLY_SUMMARY,
+  prompt_pdf_extraction: PROMPT_PDF_EXTRACTION,
 };
 
 export async function getPrompt(key: keyof typeof PROMPT_KEYS): Promise<string> {

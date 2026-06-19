@@ -21,11 +21,11 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
-  { key: "healthRisks", label: "Common Health Risks",  emoji: "🩺", color: "border-l-red-400    bg-red-50 dark:bg-red-900/20/50" },
-  { key: "diet",        label: "Ideal Diet",            emoji: "🥩", color: "border-l-orange-400 bg-orange-50/50" },
-  { key: "exercise",    label: "Exercise Needs",        emoji: "🏃", color: "border-l-green-400  bg-green-50 dark:bg-green-900/20/50" },
-  { key: "grooming",    label: "Grooming",              emoji: "✨", color: "border-l-violet-400 bg-violet-50/50" },
-  { key: "lifespan",    label: "Lifespan & Longevity",  emoji: "⏳", color: "border-l-blue-400   bg-blue-50 dark:bg-blue-900/20/50" },
+  { key: "healthRisks", label: "Common Health Risks",  emoji: "🩺", color: "border-l-red-400    bg-red-50    dark:bg-red-950/40" },
+  { key: "diet",        label: "Ideal Diet",            emoji: "🥩", color: "border-l-orange-400 bg-orange-50 dark:bg-orange-950/40" },
+  { key: "exercise",    label: "Exercise Needs",        emoji: "🏃", color: "border-l-green-400  bg-green-50  dark:bg-green-950/40" },
+  { key: "grooming",    label: "Grooming",              emoji: "✨", color: "border-l-violet-400 bg-violet-50 dark:bg-violet-950/40" },
+  { key: "lifespan",    label: "Lifespan & Longevity",  emoji: "⏳", color: "border-l-blue-400   bg-blue-50   dark:bg-blue-950/40" },
 ];
 
 export default function BreedGuideTab({ petId, breed, species }: { petId: string; breed: string | null; species: string }) {
