@@ -50,9 +50,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const buffer = Buffer.from(arrayBuffer);
     const fileBase64 = buffer.toString("base64");
 
-    // Extract text from PDF — use lib path to avoid pdf-parse's test-file check that fails in Next.js
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (buf: Buffer) => Promise<{ text: string }>;
+    const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
     const parsed = await pdfParse(buffer);
     const extractedText = parsed.text?.trim() ?? "";
 
