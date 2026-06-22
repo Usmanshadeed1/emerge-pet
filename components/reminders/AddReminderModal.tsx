@@ -253,6 +253,16 @@ export default function AddReminderModal({
           </div>
         </div>
 
+        {/* Email notification info */}
+        <div className="px-5 pb-3">
+          <p className="rounded-xl bg-blue-50 dark:bg-blue-900/20 px-3.5 py-2.5 text-xs text-blue-700 dark:text-blue-300 ring-1 ring-blue-100 dark:ring-blue-800">
+            📧{" "}
+            {showFrequency && form.frequency && form.frequency !== "As Needed"
+              ? `You'll get an email the day before and on the due date. The calendar will show this medication repeating ${form.frequency === "Weekly" ? "every week for 2 weeks" : form.frequency === "Monthly" ? "every month for 3 months" : "every day for 30 days"} from the due date.`
+              : "You'll get an email reminder the day before and on the due date."}
+          </p>
+        </div>
+
         {/* Footer */}
         <div className="flex gap-3 border-t border-gray-100 dark:border-gray-800 px-5 py-4">
           <button onClick={onClose}
