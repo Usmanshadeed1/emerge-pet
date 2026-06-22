@@ -248,6 +248,51 @@ function CalendarGrid({
   );
 }
 
+// ─── Recurring expansion ──────────────────────────────────────────────────────
+
+function buildRemindersByDate(reminders: Reminder[]): Map<string, Reminder[]> {
+  const map = new Map<string, Reminder[]>();
+  const add = (key: string, r: Reminder) =>
+    map.set(key, [...(map.get(key) ?? []), r]);
+
+  const windowEnd = new Date();
+  windowEnd.setDate(windowEnd.getDate() + 90);
+
+  reminders.forEach((r) => {
+    const start = new Date(r.dueDate);
+    add(toDateKey(start), r);
+
+    if (!r.frequency || r.frequency === "As Needed") return;
+
+    const daily = ["Once Daily", "Twice Daily", "Three Times Daily", "Every 8 Hours"];
+
+    if (daily.includes(r.frequency)) {
+      const cur = new Date(start);
+      cur.setDate(cur.getDate() + 1);
+      while (cur <= windowEnd) {
+        add(toDateKey(cur), r);
+        cur.setDate(cur.getDate() + 1);
+      }
+    } else if (r.frequency === "Weekly") {
+      const cur = new Date(start);
+      cur.setDate(cur.getDate() + 7);
+      while (cur <= windowEnd) {
+        add(toDateKey(cur), r);
+        cur.setDate(cur.getDate() + 7);
+      }
+    } else if (r.frequency === "Monthly") {
+      const cur = new Date(start);
+      cur.setMonth(cur.getMonth() + 1);
+      while (cur <= windowEnd) {
+        add(toDateKey(cur), r);
+        cur.setMonth(cur.getMonth() + 1);
+      }
+    }
+  });
+
+  return map;
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CalendarPage() {
@@ -308,11 +353,7 @@ export default function CalendarPage() {
     if (res.ok) setReminders((prev) => prev.filter((x) => x.id !== r.id));
   }
 
-  const remindersByDate = new Map<string, Reminder[]>();
-  reminders.forEach((r) => {
-    const key = toDateKey(new Date(r.dueDate));
-    remindersByDate.set(key, [...(remindersByDate.get(key) ?? []), r]);
-  });
+  const remindersByDate = buildRemindersByDate(reminders);
 
   const selectedReminders = selectedDate ? (remindersByDate.get(selectedDate) ?? []) : [];
   const overdueReminders  = reminders.filter((r) => isOverdue(r));
