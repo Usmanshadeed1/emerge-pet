@@ -88,7 +88,7 @@ export default function PetRemindersTab({ petId, petName }: { petId: string; pet
           Add Reminder
         </button>
         <Link
-          href="/dashboard/reminders"
+          href={`/dashboard/calendar?petId=${petId}&petName=${encodeURIComponent(petName)}`}
           className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:bg-gray-800 transition-all"
         >
           View calendar →

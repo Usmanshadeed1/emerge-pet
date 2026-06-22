@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { speciesEmoji, formatSpecies, petAge, formatWeight } from "@/lib/utils";
 import RecordsTab from "@/components/pets/records/RecordsTab";
 import PetRemindersTab from "@/components/pets/PetRemindersTab";
@@ -44,7 +44,9 @@ const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
 
 export default function PetDetailClient({ pet, isPremium }: { pet: Pet; isPremium: boolean }) {
   const router              = useRouter();
-  const [tab, setTab]       = useState<Tab>("overview");
+  const searchParams        = useSearchParams();
+  const initialTab          = (searchParams.get("tab") as Tab) ?? "overview";
+  const [tab, setTab]       = useState<Tab>(initialTab);
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting]     = useState(false);
   const [deleteError, setDeleteError] = useState("");
