@@ -341,7 +341,7 @@ export default function RemindersPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reminders</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Calendar</h1>
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
             {reminders.length} total · {overdueReminders.length} overdue
           </p>

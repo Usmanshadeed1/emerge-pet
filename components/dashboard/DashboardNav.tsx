@@ -16,7 +16,7 @@ interface NavUser {
 
 const NAV_LINKS = [
   { href: "/dashboard",                 label: "Home" },
-  { href: "/dashboard/reminders",       label: "Reminders" },
+  { href: "/dashboard/reminders",       label: "Calendar" },
   { href: "/dashboard/symptom-checker", label: "Symptom Checker" },
   { href: "/dashboard/advisor",         label: "Advisor" },
   { href: "/dashboard/care-tips",       label: "Care Tips" },
