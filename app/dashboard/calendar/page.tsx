@@ -28,11 +28,11 @@ interface Reminder {
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const TYPE_CONFIG: Record<ReminderType, { label: string; emoji: string; dot: string; pill: string }> = {
-  VET_APPOINTMENT: { label: "Vet Appointment", emoji: "🏥", dot: "bg-blue-400",   pill: "bg-blue-50 dark:bg-blue-900/20   text-blue-700   ring-blue-100" },
-  MEDICATION:      { label: "Medication",       emoji: "💊", dot: "bg-purple-400", pill: "bg-purple-50 dark:bg-purple-900/20 text-purple-700 ring-purple-100" },
-  GROOMING:        { label: "Grooming",         emoji: "✂️", dot: "bg-orange-400", pill: "bg-orange-50 text-orange-700 ring-orange-100" },
-  VACCINATION:     { label: "Vaccination",      emoji: "💉", dot: "bg-teal-400",   pill: "bg-teal-50   text-teal-700   ring-teal-100" },
-  CUSTOM:          { label: "Custom",           emoji: "📌", dot: "bg-gray-400",   pill: "bg-gray-50 dark:bg-gray-800   text-gray-700 dark:text-gray-300   ring-gray-200 dark:ring-gray-700" },
+  VET_APPOINTMENT: { label: "Vet Appointment", emoji: "🏥", dot: "bg-blue-400",   pill: "bg-blue-50 dark:bg-blue-900/30   text-blue-700 dark:text-blue-300   ring-blue-100 dark:ring-blue-800" },
+  MEDICATION:      { label: "Medication",       emoji: "💊", dot: "bg-purple-400", pill: "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-purple-100 dark:ring-purple-800" },
+  GROOMING:        { label: "Grooming",         emoji: "✂️", dot: "bg-orange-400", pill: "bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 ring-orange-100 dark:ring-orange-800" },
+  VACCINATION:     { label: "Vaccination",      emoji: "💉", dot: "bg-teal-400",   pill: "bg-teal-50 dark:bg-teal-900/30   text-teal-700 dark:text-teal-300   ring-teal-100 dark:ring-teal-800" },
+  CUSTOM:          { label: "Custom",           emoji: "📌", dot: "bg-gray-400",   pill: "bg-gray-50 dark:bg-gray-800     text-gray-700 dark:text-gray-300   ring-gray-200 dark:ring-gray-700" },
 };
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
