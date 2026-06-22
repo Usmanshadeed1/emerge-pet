@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { DailyLogin } from "./DailyLogin";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface NavUser {
   name?:         string | null;
@@ -78,8 +77,6 @@ export default function DashboardNav({ user }: { user: NavUser }) {
 
           {/* Right side: theme toggle + user menu + hamburger */}
           <div className="flex items-center gap-2">
-            <ThemeToggle />
-
             {/* User avatar / menu */}
             <div className="relative">
               <button onClick={() => { setUserOpen((o) => !o); setMobileOpen(false); }}
