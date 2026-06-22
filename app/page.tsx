@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { NewsletterForm } from "@/components/landing/NewsletterForm";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
-
 const FEATURES = [
   {
     icon: "🏥",
@@ -50,7 +48,6 @@ export default function HomePage() {
             <span className="text-lg font-bold text-gray-900">EmergePet</span>
           </div>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <Link href="/login"
               className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 transition-colors">
               Sign in

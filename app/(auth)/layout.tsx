@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DM_Sans } from "next/font/google";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
@@ -31,6 +32,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="pointer-events-none absolute inset-0 overflow-hidden hidden dark:block" aria-hidden="true">
         <div className="absolute -top-48 -left-48 h-[500px] w-[500px] rounded-full bg-green-900/20 blur-[120px]" />
         <div className="absolute -top-24 right-[-80px] h-[400px] w-[400px] rounded-full bg-emerald-900/20 blur-[100px]" />
+      </div>
+
+      {/* Logo — top left */}
+      <div className="absolute top-4 left-4 z-20">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-green-600 text-base">🐾</span>
+          <span className="hidden sm:inline text-sm">EmergePet</span>
+        </Link>
       </div>
 
       {/* Theme toggle — top right */}
