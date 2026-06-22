@@ -255,8 +255,7 @@ function buildRemindersByDate(reminders: Reminder[]): Map<string, Reminder[]> {
   const add = (key: string, r: Reminder) =>
     map.set(key, [...(map.get(key) ?? []), r]);
 
-  const windowEnd = new Date();
-  windowEnd.setDate(windowEnd.getDate() + 90);
+  const daily = ["Once Daily", "Twice Daily", "Three Times Daily", "Every 8 Hours"];
 
   reminders.forEach((r) => {
     const start = new Date(r.dueDate);
@@ -264,26 +263,33 @@ function buildRemindersByDate(reminders: Reminder[]): Map<string, Reminder[]> {
 
     if (!r.frequency || r.frequency === "As Needed") return;
 
-    const daily = ["Once Daily", "Twice Daily", "Three Times Daily", "Every 8 Hours"];
-
     if (daily.includes(r.frequency)) {
+      // 30 days from due date
+      const end = new Date(start);
+      end.setDate(end.getDate() + 30);
       const cur = new Date(start);
       cur.setDate(cur.getDate() + 1);
-      while (cur <= windowEnd) {
+      while (cur <= end) {
         add(toDateKey(cur), r);
         cur.setDate(cur.getDate() + 1);
       }
     } else if (r.frequency === "Weekly") {
+      // 14 days (2 occurrences) from due date
+      const end = new Date(start);
+      end.setDate(end.getDate() + 14);
       const cur = new Date(start);
       cur.setDate(cur.getDate() + 7);
-      while (cur <= windowEnd) {
+      while (cur <= end) {
         add(toDateKey(cur), r);
         cur.setDate(cur.getDate() + 7);
       }
     } else if (r.frequency === "Monthly") {
+      // 3 months from due date
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + 3);
       const cur = new Date(start);
       cur.setMonth(cur.getMonth() + 1);
-      while (cur <= windowEnd) {
+      while (cur <= end) {
         add(toDateKey(cur), r);
         cur.setMonth(cur.getMonth() + 1);
       }
