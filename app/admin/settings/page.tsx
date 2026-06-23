@@ -1112,7 +1112,7 @@ function RemindersSection() {
           ))}
         </select>
         <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-          Time the daily email digest is sent covering today and tomorrow's reminders.
+          Time the daily email digest is sent covering today and tomorrow&apos;s reminders.
         </p>
       </div>
 

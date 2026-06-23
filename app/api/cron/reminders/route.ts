@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     getSetting("reminder_email_template") ?? null,
   ]);
 
-  const [sendHour, sendMinute] = (sendTime as string).split(":").map(Number);
+  const [sendHour] = (sendTime as string).split(":").map(Number);
   const notifyBefore = parseInt(notifyBeforeStr as string, 10) || 60;
   const appUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3333";
 
