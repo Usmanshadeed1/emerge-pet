@@ -9,15 +9,23 @@ type ReminderType = "VET_APPOINTMENT" | "MEDICATION" | "GROOMING" | "VACCINATION
 interface Pet { id: string; name: string; species: string }
 
 interface Reminder {
-  id:          string;
-  petId:       string;
-  title:       string;
-  type:        ReminderType;
-  dueDate:     string;
-  dueTime:     string | null;
-  frequency:   string | null;
-  notes:       string | null;
-  isCompleted: boolean;
+  id:            string;
+  petId:         string;
+  title:         string;
+  type:          ReminderType;
+  dueDate:       string;
+  dueTime:       string | null;
+  frequency:     string | null;
+  reminderTimes: string[];
+  notes:         string | null;
+  isCompleted:   boolean;
+}
+
+function fmt12(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour   = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
 }
 
 const TYPE_CONFIG: Record<ReminderType, { label: string; emoji: string; pill: string }> = {
@@ -124,6 +132,9 @@ export default function PetRemindersTab({ petId, petName }: { petId: string; pet
                     <span className="text-gray-400 dark:text-gray-500">{new Date(r.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                     {r.dueTime && <span className="text-gray-400 dark:text-gray-500">⏰ {r.dueTime}</span>}
                     {r.frequency && <span className="text-gray-400 dark:text-gray-500">🔄 {r.frequency}</span>}
+                    {r.reminderTimes && r.reminderTimes.length > 0 && (
+                      <span className="text-gray-400 dark:text-gray-500">🕐 {r.reminderTimes.map(fmt12).join(" · ")}</span>
+                    )}
                     {overdue && <span className="rounded-md bg-red-100 px-1.5 py-0.5 font-semibold text-red-600">Overdue</span>}
                   </div>
                 </div>

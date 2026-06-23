@@ -55,6 +55,13 @@ function isOverdue(r: Reminder): boolean {
   return new Date(r.dueDate) < new Date(new Date().toDateString());
 }
 
+function fmt12(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour   = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${period}`;
+}
+
 function dotColor(reminders: Reminder[]): string {
   const hasOverdue = reminders.some(isOverdue);
   if (hasOverdue) return "bg-red-400";
@@ -143,6 +150,9 @@ function ReminderCard({
           )}
           {reminder.frequency && (
             <span className="text-xs text-gray-400 dark:text-gray-500">🔄 {reminder.frequency}</span>
+          )}
+          {reminder.reminderTimes && reminder.reminderTimes.length > 0 && (
+            <span className="text-xs text-gray-400 dark:text-gray-500">🕐 {reminder.reminderTimes.map(fmt12).join(" · ")}</span>
           )}
           {overdue && (
             <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-600">Overdue</span>
