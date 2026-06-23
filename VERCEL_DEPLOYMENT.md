@@ -8,7 +8,7 @@
 
 ---
 
-## How Auto-Deploy Works
+## How Auto-Deploy Workss
 1. Developer pushes code to GitHub (`master` branch)
 2. Vercel detects the push automatically
 3. Vercel runs `prisma generate && next build`

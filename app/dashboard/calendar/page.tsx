@@ -607,7 +607,7 @@ export default function CalendarPage() {
             dueTime:        editReminder.dueTime     ?? "",
             frequency:      editReminder.frequency   ?? "",
             reminderTimes:  editReminder.reminderTimes ?? [],
-            notifyBefore:   editReminder.notifyBefore ?? undefined,
+            notifyBefore:   editReminder.notifyBefore != null ? String(editReminder.notifyBefore) : undefined,
             endDate:        editReminder.endDate ? editReminder.endDate.slice(0, 10) : "",
             notes:          editReminder.notes        ?? "",
           }}
