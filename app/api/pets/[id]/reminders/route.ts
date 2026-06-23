@@ -33,7 +33,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (error) return NextResponse.json({ error }, { status });
 
   try {
-    const { title, type, dueDate, dueTime, frequency, notes } = await req.json();
+    const { title, type, dueDate, dueTime, frequency, reminderTimes, notifyBefore, endDate, notes } = await req.json();
 
     if (!title?.trim() || !type || !dueDate) {
       return NextResponse.json({ error: "Title, type, and due date are required." }, { status: 400 });
@@ -41,13 +41,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const reminder = await db.reminder.create({
       data: {
-        petId:     pet!.id,
-        title:     title.trim(),
+        petId:          pet!.id,
+        title:          title.trim(),
         type,
-        dueDate:   new Date(dueDate),
-        dueTime:   dueTime   || null,
-        frequency: frequency || null,
-        notes:     notes?.trim() || null,
+        dueDate:        new Date(dueDate),
+        dueTime:        dueTime              || null,
+        frequency:      frequency            || null,
+        reminderTimes:  Array.isArray(reminderTimes) ? reminderTimes.filter(Boolean) : [],
+        notifyBefore:   notifyBefore != null ? Number(notifyBefore) : null,
+        endDate:        endDate              ? new Date(endDate) : null,
+        notes:          notes?.trim()        || null,
       },
     });
 

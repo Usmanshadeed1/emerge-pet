@@ -34,14 +34,17 @@ export async function PATCH(
     const updated = await db.reminder.update({
       where: { id: reminder!.id },
       data: {
-        title:       body.title?.trim()    ?? reminder!.title,
-        type:        body.type             ?? reminder!.type,
-        dueDate:     body.dueDate          ? new Date(body.dueDate) : reminder!.dueDate,
-        dueTime:     body.dueTime          ?? reminder!.dueTime,
-        frequency:   body.frequency        ?? reminder!.frequency,
-        notes:       body.notes?.trim()    ?? reminder!.notes,
-        isCompleted: body.isCompleted      ?? reminder!.isCompleted,
-        completedAt: body.isCompleted && !wasCompleted ? new Date() : reminder!.completedAt,
+        title:          body.title?.trim()   ?? reminder!.title,
+        type:           body.type            ?? reminder!.type,
+        dueDate:        body.dueDate         ? new Date(body.dueDate) : reminder!.dueDate,
+        dueTime:        body.dueTime         ?? reminder!.dueTime,
+        frequency:      body.frequency       ?? reminder!.frequency,
+        reminderTimes:  Array.isArray(body.reminderTimes) ? body.reminderTimes.filter(Boolean) : reminder!.reminderTimes,
+        notifyBefore:   body.notifyBefore != null ? Number(body.notifyBefore) : reminder!.notifyBefore,
+        endDate:        body.endDate         ? new Date(body.endDate) : (body.endDate === null ? null : reminder!.endDate),
+        notes:          body.notes?.trim()   ?? reminder!.notes,
+        isCompleted:    body.isCompleted     ?? reminder!.isCompleted,
+        completedAt:    body.isCompleted && !wasCompleted ? new Date() : reminder!.completedAt,
       },
     });
 

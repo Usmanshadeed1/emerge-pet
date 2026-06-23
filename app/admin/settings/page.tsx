@@ -1020,6 +1020,171 @@ function PromptsSection() {
   );
 }
 
+// ─── Default reminder email template ─────────────────────────────────────────
+
+const DEFAULT_REMINDER_SUBJECT = "🐾 Pet care reminder — {{petName}} · EmergePet";
+
+const DEFAULT_REMINDER_TEMPLATE = `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px">
+  <div style="text-align:center;margin-bottom:24px">
+    <span style="font-size:40px">🐾</span>
+    <h1 style="font-size:22px;font-weight:700;color:#111;margin:8px 0 0">EmergePet</h1>
+  </div>
+  <h2 style="font-size:18px;font-weight:600;color:#111;margin:0 0 8px">Hi {{ownerName}},</h2>
+  <p style="font-size:14px;color:#555;margin:0 0 16px">This is a reminder for <strong>{{petName}}</strong>.</p>
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px;margin-bottom:20px">
+    <p style="font-size:16px;font-weight:600;color:#111;margin:0 0 4px">{{reminderTitle}}</p>
+    <p style="font-size:13px;color:#555;margin:0">📅 {{dueDate}}{{doseTime}}</p>
+  </div>
+  <a href="{{appUrl}}/dashboard/calendar" style="display:inline-block;background:#16a34a;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600">
+    View Calendar
+  </a>
+  <p style="color:#999;font-size:12px;margin:24px 0 0">You're receiving this because you have reminders set up in EmergePet.</p>
+</div>`;
+
+// ─── Reminders Section ────────────────────────────────────────────────────────
+
+function RemindersSection() {
+  const [sendTime,      setSendTime]      = useState("08:00");
+  const [notifyBefore,  setNotifyBefore]  = useState("60");
+  const [subject,       setSubject]       = useState(DEFAULT_REMINDER_SUBJECT);
+  const [template,      setTemplate]      = useState(DEFAULT_REMINDER_TEMPLATE);
+  const [saveState,     setSaveState]     = useState<SaveState>("idle");
+  const [loaded,        setLoaded]        = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((data: Record<string, string | boolean | null>) => {
+        if (data.reminder_send_time)      setSendTime(data.reminder_send_time as string);
+        if (data.reminder_notify_before)  setNotifyBefore(data.reminder_notify_before as string);
+        if (data.reminder_email_subject)  setSubject(data.reminder_email_subject as string);
+        if (data.reminder_email_template) setTemplate(data.reminder_email_template as string);
+        setLoaded(true);
+      });
+  }, []);
+
+  async function handleSave() {
+    setSaveState("saving");
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          reminder_send_time:      sendTime,
+          reminder_notify_before:  notifyBefore,
+          reminder_email_subject:  subject,
+          reminder_email_template: template,
+        }),
+      });
+      setSaveState(res.ok ? "saved" : "error");
+      if (res.ok) setTimeout(() => setSaveState("idle"), 3000);
+    } catch { setSaveState("error"); }
+  }
+
+  if (!loaded) return (
+    <div className="flex justify-center py-8">
+      <svg className="h-6 w-6 animate-spin text-green-600" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+      </svg>
+    </div>
+  );
+
+  return (
+    <SectionCard
+      title="Reminders"
+      subtitle="Configure when reminder emails are sent and customise the email template."
+      saveState={saveState}
+      onSave={handleSave}
+    >
+      {/* Daily send time */}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Daily reminder send time
+        </label>
+        <select
+          value={sendTime}
+          onChange={(e) => setSendTime(e.target.value)}
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+        >
+          {["06:00","07:00","08:00","09:00","10:00","12:00","18:00","20:00"].map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+          Time the daily email digest is sent covering today and tomorrow's reminders.
+        </p>
+      </div>
+
+      {/* Notify before (medication) */}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Medication dose alert — notify before
+        </label>
+        <select
+          value={notifyBefore}
+          onChange={(e) => setNotifyBefore(e.target.value)}
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+        >
+          <option value="15">15 minutes before</option>
+          <option value="30">30 minutes before</option>
+          <option value="60">1 hour before</option>
+          <option value="120">2 hours before</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+          How early to send an email before each scheduled medication dose time.
+        </p>
+      </div>
+
+      {/* Email subject */}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Email subject template
+        </label>
+        <input
+          type="text"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+        />
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+          Available placeholders: <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">{"{{petName}}"}</code>{" "}
+          <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">{"{{ownerName}}"}</code>{" "}
+          <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">{"{{reminderTitle}}"}</code>
+        </p>
+      </div>
+
+      {/* Email body template */}
+      <div>
+        <div className="mb-1.5 flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Email body template (HTML)
+          </label>
+          <button
+            type="button"
+            onClick={() => { setSubject(DEFAULT_REMINDER_SUBJECT); setTemplate(DEFAULT_REMINDER_TEMPLATE); }}
+            className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 hover:border-red-200 transition-all"
+          >
+            Reset to default
+          </button>
+        </div>
+        <textarea
+          value={template}
+          onChange={(e) => setTemplate(e.target.value)}
+          rows={10}
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm font-mono text-gray-800 dark:text-gray-100 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all resize-y"
+        />
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+          Placeholders:{" "}
+          {["{{ownerName}}","{{petName}}","{{reminderTitle}}","{{dueDate}}","{{doseTime}}","{{appUrl}}"].map((p) => (
+            <code key={p} className="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded mr-1">{p}</code>
+          ))}
+        </p>
+      </div>
+    </SectionCard>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 type Tab = "services" | "prompts";
@@ -1107,6 +1272,8 @@ export default function AdminSettingsPage() {
           <LlmSection />
 
           <EmailSection />
+
+          <RemindersSection />
 
           <SectionCard
             title="Payments (RevenueCat)"

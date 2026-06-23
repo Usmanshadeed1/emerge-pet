@@ -12,17 +12,20 @@ type ReminderType = "VET_APPOINTMENT" | "MEDICATION" | "GROOMING" | "VACCINATION
 interface Pet { id: string; name: string; species: string }
 
 interface Reminder {
-  id:          string;
-  petId:       string;
-  title:       string;
-  type:        ReminderType;
-  dueDate:     string;
-  dueTime:     string | null;
-  frequency:   string | null;
-  notes:       string | null;
-  isCompleted: boolean;
-  completedAt: string | null;
-  pet:         Pet | null;
+  id:             string;
+  petId:          string;
+  title:          string;
+  type:           ReminderType;
+  dueDate:        string;
+  dueTime:        string | null;
+  frequency:      string | null;
+  reminderTimes:  string[];
+  notifyBefore:   number | null;
+  endDate:        string | null;
+  notes:          string | null;
+  isCompleted:    boolean;
+  completedAt:    string | null;
+  pet:            Pet | null;
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -263,35 +266,52 @@ function buildRemindersByDate(reminders: Reminder[]): Map<string, Reminder[]> {
 
     if (!r.frequency || r.frequency === "As Needed") return;
 
+    // Hard cap: endDate if set, otherwise 90 days from today
+    const hardCap = new Date();
+    hardCap.setDate(hardCap.getDate() + 90);
+    const cap = r.endDate ? new Date(Math.min(new Date(r.endDate).getTime(), hardCap.getTime())) : hardCap;
+
     if (daily.includes(r.frequency)) {
-      // 30 days from due date
       const end = new Date(start);
       end.setDate(end.getDate() + 30);
+      const bound = new Date(Math.min(end.getTime(), cap.getTime()));
       const cur = new Date(start);
       cur.setDate(cur.getDate() + 1);
-      while (cur <= end) {
+      while (cur <= bound) {
         add(toDateKey(cur), r);
         cur.setDate(cur.getDate() + 1);
       }
     } else if (r.frequency === "Weekly") {
-      // 14 days (2 occurrences) from due date
       const end = new Date(start);
       end.setDate(end.getDate() + 14);
+      const bound = new Date(Math.min(end.getTime(), cap.getTime()));
       const cur = new Date(start);
       cur.setDate(cur.getDate() + 7);
-      while (cur <= end) {
+      while (cur <= bound) {
         add(toDateKey(cur), r);
         cur.setDate(cur.getDate() + 7);
       }
     } else if (r.frequency === "Monthly") {
-      // 3 months from due date
       const end = new Date(start);
       end.setMonth(end.getMonth() + 3);
+      const bound = new Date(Math.min(end.getTime(), cap.getTime()));
       const cur = new Date(start);
       cur.setMonth(cur.getMonth() + 1);
-      while (cur <= end) {
+      while (cur <= bound) {
         add(toDateKey(cur), r);
         cur.setMonth(cur.getMonth() + 1);
+      }
+    } else if (r.frequency?.startsWith("Custom|")) {
+      // Format: "Custom|2|days"
+      const [, intervalStr, unit] = r.frequency.split("|");
+      const interval = parseInt(intervalStr, 10) || 1;
+      const cur = new Date(start);
+      for (let i = 0; i < 60; i++) {
+        if (unit === "hours" || unit === "days") cur.setDate(cur.getDate() + (unit === "hours" ? 0 : interval));
+        else if (unit === "weeks")  cur.setDate(cur.getDate() + interval * 7);
+        else if (unit === "months") cur.setMonth(cur.getMonth() + interval);
+        if (cur > cap) break;
+        add(toDateKey(cur), r);
       }
     }
   });
@@ -579,14 +599,17 @@ export default function CalendarPage() {
           onClose={() => setEditReminder(null)}
           onSaved={load}
           initial={{
-            id:        editReminder.id,
-            title:     editReminder.title,
-            type:      editReminder.type,
-            petId:     editReminder.petId,
-            dueDate:   editReminder.dueDate.slice(0, 10),
-            dueTime:   editReminder.dueTime  ?? "",
-            frequency: editReminder.frequency ?? "",
-            notes:     editReminder.notes    ?? "",
+            id:             editReminder.id,
+            title:          editReminder.title,
+            type:           editReminder.type,
+            petId:          editReminder.petId,
+            dueDate:        editReminder.dueDate.slice(0, 10),
+            dueTime:        editReminder.dueTime     ?? "",
+            frequency:      editReminder.frequency   ?? "",
+            reminderTimes:  editReminder.reminderTimes ?? [],
+            notifyBefore:   editReminder.notifyBefore ?? undefined,
+            endDate:        editReminder.endDate ? editReminder.endDate.slice(0, 10) : "",
+            notes:          editReminder.notes        ?? "",
           }}
         />
       )}

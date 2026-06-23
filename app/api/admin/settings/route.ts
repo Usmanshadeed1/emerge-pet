@@ -17,6 +17,10 @@ const ALL_KEYS = [
   "revenuecat_api_key",
   "google_places_key",
   "mailchimp_api_key", "mailchimp_audience_id",
+  "reminder_send_time",
+  "reminder_notify_before",
+  "reminder_email_subject",
+  "reminder_email_template",
 ];
 
 export async function GET() {

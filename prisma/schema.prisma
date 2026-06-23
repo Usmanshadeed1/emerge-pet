@@ -233,18 +233,21 @@ model Vaccine {
 }
 
 model Reminder {
-  id          String       @id @default(cuid())
-  petId       String
-  title       String
-  type        ReminderType
-  dueDate     DateTime
-  dueTime     String?
-  frequency   String?
-  notes       String?
-  isCompleted Boolean      @default(false)
-  completedAt DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  petId          String
+  title          String
+  type           ReminderType
+  dueDate        DateTime
+  dueTime        String?
+  frequency      String?
+  reminderTimes  String[]
+  notifyBefore   Int?
+  endDate        DateTime?
+  notes          String?
+  isCompleted    Boolean      @default(false)
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
