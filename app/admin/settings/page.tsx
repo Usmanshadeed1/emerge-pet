@@ -1041,6 +1041,112 @@ const DEFAULT_REMINDER_TEMPLATE = `<div style="font-family:sans-serif;max-width:
   <p style="color:#999;font-size:12px;margin:24px 0 0">You're receiving this because you have reminders set up in EmergePet.</p>
 </div>`;
 
+// ─── Email Template Editor ────────────────────────────────────────────────────
+
+const SAMPLE_PREVIEW = {
+  ownerName:     "John",
+  petName:       "Max",
+  reminderTitle: "Morning Medication",
+  dueDate:       "Mon, Jun 23",
+  doseTime:      " at 8:00 AM",
+  appUrl:        "https://emerge-pet.vercel.app",
+};
+
+function EmailTemplateEditor({
+  template,
+  setTemplate,
+  onReset,
+}: {
+  template: string;
+  setTemplate: (v: string) => void;
+  onReset: () => void;
+}) {
+  const [tab, setTab] = useState<"edit" | "preview">("edit");
+
+  const previewHtml = template
+    .replace(/\{\{ownerName\}\}/g,     SAMPLE_PREVIEW.ownerName)
+    .replace(/\{\{petName\}\}/g,       SAMPLE_PREVIEW.petName)
+    .replace(/\{\{reminderTitle\}\}/g, SAMPLE_PREVIEW.reminderTitle)
+    .replace(/\{\{dueDate\}\}/g,       SAMPLE_PREVIEW.dueDate)
+    .replace(/\{\{doseTime\}\}/g,      SAMPLE_PREVIEW.doseTime)
+    .replace(/\{\{appUrl\}\}/g,        SAMPLE_PREVIEW.appUrl);
+
+  return (
+    <div>
+      {/* Header row */}
+      <div className="mb-2 flex items-center justify-between">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Email body template
+        </label>
+        <div className="flex items-center gap-2">
+          {/* Tab switcher */}
+          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setTab("edit")}
+              className={`px-3 py-1.5 transition-colors ${
+                tab === "edit"
+                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+              }`}
+            >
+              Edit HTML
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("preview")}
+              className={`px-3 py-1.5 transition-colors border-l border-gray-200 dark:border-gray-700 ${
+                tab === "preview"
+                  ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+              }`}
+            >
+              Preview
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={onReset}
+            className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 hover:border-red-200 transition-all"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      {/* Editor */}
+      {tab === "edit" ? (
+        <textarea
+          value={template}
+          onChange={(e) => setTemplate(e.target.value)}
+          rows={14}
+          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm font-mono text-gray-800 dark:text-gray-100 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all resize-y bg-white dark:bg-gray-900"
+        />
+      ) : (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-900">
+          <div className="px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
+            Preview with sample data — Max · John · Morning Medication
+          </div>
+          <iframe
+            srcDoc={previewHtml}
+            title="Email preview"
+            className="w-full border-0"
+            style={{ height: "420px" }}
+            sandbox="allow-same-origin"
+          />
+        </div>
+      )}
+
+      <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+        Placeholders:{" "}
+        {["{{ownerName}}","{{petName}}","{{reminderTitle}}","{{dueDate}}","{{doseTime}}","{{appUrl}}"].map((p) => (
+          <code key={p} className="bg-gray-100 dark:bg-gray-800 px-1 rounded mr-1">{p}</code>
+        ))}
+      </p>
+    </div>
+  );
+}
+
 // ─── Reminders Section ────────────────────────────────────────────────────────
 
 function RemindersSection() {
@@ -1155,32 +1261,11 @@ function RemindersSection() {
       </div>
 
       {/* Email body template */}
-      <div>
-        <div className="mb-1.5 flex items-center justify-between">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Email body template (HTML)
-          </label>
-          <button
-            type="button"
-            onClick={() => { setSubject(DEFAULT_REMINDER_SUBJECT); setTemplate(DEFAULT_REMINDER_TEMPLATE); }}
-            className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 hover:border-red-200 transition-all"
-          >
-            Reset to default
-          </button>
-        </div>
-        <textarea
-          value={template}
-          onChange={(e) => setTemplate(e.target.value)}
-          rows={10}
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm font-mono text-gray-800 dark:text-gray-100 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all resize-y"
-        />
-        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-          Placeholders:{" "}
-          {["{{ownerName}}","{{petName}}","{{reminderTitle}}","{{dueDate}}","{{doseTime}}","{{appUrl}}"].map((p) => (
-            <code key={p} className="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded mr-1">{p}</code>
-          ))}
-        </p>
-      </div>
+      <EmailTemplateEditor
+        template={template}
+        setTemplate={setTemplate}
+        onReset={() => { setSubject(DEFAULT_REMINDER_SUBJECT); setTemplate(DEFAULT_REMINDER_TEMPLATE); }}
+      />
     </SectionCard>
   );
 }

@@ -264,7 +264,7 @@ function buildRemindersByDate(reminders: Reminder[]): Map<string, Reminder[]> {
     const start = new Date(r.dueDate);
     add(toDateKey(start), r);
 
-    if (!r.frequency || r.frequency === "As Needed") return;
+    if (!r.frequency) return;
 
     // Hard cap: endDate if set, otherwise 90 days from today
     const hardCap = new Date();

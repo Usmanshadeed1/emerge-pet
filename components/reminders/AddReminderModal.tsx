@@ -43,7 +43,6 @@ const FREQUENCIES = [
   { value: "Every 8 Hours",       label: "Every 8 Hours",       times: 3,  defaults: ["08:00", "16:00", "00:00"] },
   { value: "Weekly",              label: "Weekly",              times: 1,  defaults: ["08:00"] },
   { value: "Monthly",             label: "Monthly",             times: 1,  defaults: ["08:00"] },
-  { value: "As Needed",           label: "As Needed",           times: 0,  defaults: [] },
   { value: "Custom",              label: "Custom interval…",    times: -1, defaults: ["08:00"] },
 ];
 
@@ -165,7 +164,7 @@ export default function AddReminderModal({
 
   // Notification info text
   function notifyInfoText() {
-    if (!isMedication || !form.frequency || form.frequency === "As Needed") {
+    if (!isMedication || !form.frequency) {
       return "📧 You'll get an email reminder the day before and on the due date.";
     }
     const mins  = form.notifyBefore || globalNotify;
@@ -323,7 +322,7 @@ export default function AddReminderModal({
                 )}
 
                 {/* Notify before */}
-                {form.frequency && form.frequency !== "As Needed" && (
+                {form.frequency && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Send email reminder
