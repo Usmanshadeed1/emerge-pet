@@ -67,19 +67,27 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const systemPrompt = await getPrompt("prompt_pdf_extraction");
 
     // Call AI via shared helper (reads provider config from AppSettings in DB)
-    const aiResponse = await callAI(
-      [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: extractedText.slice(0, 8000) },
-      ],
-      { jsonMode: true }
-    );
+    // jsonMode NOT used here — the prompt returns a JSON array, not an object,
+    // and json_object mode conflicts with array responses on most providers
+    const aiResponse = await callAI([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: extractedText.slice(0, 8000) },
+    ]);
 
     let records: ExtractedRecord[] = [];
     try {
-      const parsed = JSON.parse(aiResponse);
-      records = Array.isArray(parsed) ? parsed : parsed.records ?? [];
-    } catch {
+      // Strip markdown code fences if the AI wrapped the response
+      const cleaned = aiResponse
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```\s*$/, "")
+        .trim();
+
+      const parsed = JSON.parse(cleaned);
+      records = Array.isArray(parsed)
+        ? parsed
+        : (parsed.records ?? parsed.data ?? parsed.items ?? []);
+    } catch (parseErr) {
+      console.error("[pdf/extract] JSON parse failed:", parseErr, "\nRaw AI response:", aiResponse.slice(0, 500));
       records = [];
     }
 
