@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import QRCode from "qrcode";
+import { randomBytes } from "crypto";
 
 export async function GET(
   _req: Request,
@@ -22,7 +23,9 @@ export async function GET(
   }
 
   if (!pet.qrToken) {
-    return NextResponse.json({ error: "QR token not set for this pet." }, { status: 500 });
+    const newToken = randomBytes(16).toString("hex");
+    await db.pet.update({ where: { id: params.id }, data: { qrToken: newToken } });
+    pet.qrToken = newToken;
   }
 
   const baseUrl    = process.env.NEXTAUTH_URL ?? "http://localhost:3333";
